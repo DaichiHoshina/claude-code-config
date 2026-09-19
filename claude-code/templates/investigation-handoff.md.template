@@ -1,0 +1,73 @@
+# Investigation handoff: <short task name>
+
+state: <PREFLIGHT | INVESTIGATING | READY_FOR_IMPLEMENTATION>
+source_session: <current_session_id injected by SessionStart>
+source_repo_root: </absolute/path/to/repository>
+source_branch: <branch name or DETACHED>
+git_head: <40-character git SHA>
+next_command: /dev --handoff </absolute/path/to/this-handoff.md>
+
+## scope
+
+<!-- Define the exact implementation boundary. -->
+- <in-scope change>
+
+## out_of_scope
+
+<!-- List explicit exclusions. Use "None" only when there are none. -->
+- <excluded change>
+
+## requirements
+
+<!-- State observable behavior and constraints. -->
+- <requirement>
+
+## decisions
+
+<!-- Record decisions and their rationale. -->
+- <decision>: <rationale>
+
+## evidence
+
+<!-- Cite reproducible code, command output, logs, or documentation. -->
+- <source>: <finding>
+
+## files_and_symbols
+
+<!-- Name each file and symbol expected to change or constrain implementation. -->
+- `<path>`: `<symbol>` — <purpose>
+
+## implementation_steps
+
+<!-- Order concrete edits so no source-session context is required. -->
+1. <implementation step>
+
+## verification_commands
+
+<!-- Use commands runnable from source_repo_root. -->
+```bash
+<verification command>
+```
+
+## open_questions
+
+<!-- Use "None" only when all questions are resolved. -->
+- None
+
+## residual_risks
+
+<!-- Describe accepted risks and mitigations. Use "None" when absent. -->
+- None
+
+<!--
+Before READY_FOR_IMPLEMENTATION:
+- Copy the source session's injected current_session_id into source_session.
+- Replace every angle-bracket placeholder and remove all template comments.
+- Resolve every blocker.
+- If blocked, add "UNRESOLVED_BLOCKER: <reason>" and keep state INVESTIGATING.
+- Treat this artifact as the complete implementation specification.
+- After writing READY_FOR_IMPLEMENTATION, the source session stops new Agent and write-class work.
+- Start implementation in a fresh session with the exact next_command above, then pass that session's newly injected current_session_id to validator --current-session.
+- Do not use CLAUDE_CODE_SESSION_ID for either session ID.
+- /compact is same-phase compression and does not perform this handoff.
+-->

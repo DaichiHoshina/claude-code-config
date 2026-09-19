@@ -1,0 +1,43 @@
+# AI Output Rules (Enforced)
+
+Brief prohibition list only. Details: `guidelines/writing/`
+
+## PR / Commit Prohibitions
+
+- AI footers like "Generated with Claude Code"
+- Variable/file name lists (readable in diff)
+- Table-format file listings (duplicates diff)
+- Boilerplate like "changes in this PR"
+- **Body = Why only**: commit WHAT → subject line only. Body (if written): Why (motivation / constraint / problem) in 1-3 lines. No WHAT supplement bullets / file lists / function enumerations. Details: `guidelines/writing/commit-message.md` **"原則"** + **"Why を本文 1 行目に書く"** section (canonical source)
+- **Present-state facts only (no progress log)**: PR body / commit body / code comments describe the **final diff as it is now**. Never narrate development history ("initially X, then changed to Y" / "fixed per review" / "reworked from v1"). History lives in commits and review threads. If a rejected alternative matters to the reader, state it as a present-tense adoption reason in 1-2 lines ("Z adopted; X rejected because ..."). Canonical: `guidelines/writing/pr-description.md` 「禁止」 + `code-comment.md` 削除カテゴリ (8) 経過メモ
+- **Reviewer assign**: do not use `--reviewer` flag in `gh pr create` / `gh pr edit`. Do not proactively suggest "assign reviewer". Do not edit auto-assign workflows (`.github/CODEOWNERS` etc). Leave reviewer field empty when PR template includes one (team allocation depends on availability / domain / rotation — AI assignment misfires).
+
+Details: `guidelines/writing/commit-message.md` / `pr-description.md`
+
+## Short Posts (issue/ticket/comments)
+
+結論・理由・次の行動のうち、その投稿に必要な要素を自然な順序で書く。PREP は内部整理に使えるが、見出しや 3 要素を短い返信へ機械的に強制しない。
+
+Details: `guidelines/writing/external-post.md` / common principles: `guidelines/writing/PRINCIPLES.md`
+
+Long-form (Notion / Design Doc / PRD / RCA) → `guidelines/writing/long-form-doc.md`
+
+## URL / Issue & PR Number Validation
+
+Before embedding issue/PR/discussion URLs in outward text (PR body / commit / Issue / comment / Slack / Notion), verify number existence and title match via `gh issue view <N>` or `gh pr view <N>` (or `gh api`).
+
+- Never construct numbers from guesses or memory. Reuse only URLs confirmed in current conversation; always verify new numbers via gh.
+- Cross-repo references (work-repo / docs etc.) risk repo-part mix-ups — include `owner/repo` in validation scope.
+- When gh is unavailable (not installed / no permission), do not assert URLs; prompt user to confirm.
+
+**Why**: Number mix-ups are invisible in diff and missed in review, causing churn on every PR (detected retrospective 2026-05-31).
+
+## Code Comments
+
+Prohibit AI-generation markers (`// AI-generated`, `// TODO: AI suggested` etc).
+
+Details: `guidelines/writing/code-comment.md` (WHY / important memo / deletion categories / fail-safe template)
+
+## Reference: Pre-post Self-check
+
+Verify `guidelines/writing/PRINCIPLES.md` **「文章生成の不変条件」** + **「書く前の4問」** + **「出力前セルフチェック」** before posting. Do not expose the check process in the posted text.

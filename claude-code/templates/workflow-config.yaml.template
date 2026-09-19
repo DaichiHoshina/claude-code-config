@@ -1,0 +1,41 @@
+# プロジェクト固有のワークフロー設定テンプレート
+# 使用方法: このファイルを .claude/workflow-config.yaml にコピーして編集
+
+# プロジェクト名（任意）
+project: <project-name>
+
+# カスタムワークフロー定義
+workflows:
+  # 機能開発ワークフローのカスタマイズ例
+  feature:
+    steps:
+      # 既存ステップの後にカスタムステップを追加
+      # - command: /your-custom-command
+      #   required: false
+      
+      # 検証ステップ追加（通常は /lint-test で十分）
+      - command: /lint-test
+        after: /test
+  
+  # バグ修正ワークフローのカスタマイズ例（通常は /lint-test を推奨）
+  # bugfix:
+  #   steps:
+  #     - command: /lint-test
+
+# 必須ステップの指定（チーム標準化用）
+required_steps:
+  - /review       # コードレビュー必須
+  - /lint-test    # 検証必須
+
+# スキップ可能なステップ（省略可）
+# optional_steps:
+#   - /prd
+#   - /review
+
+# ワークフロー履歴（自動記録・学習用、手動編集不要）
+# history:
+#   - task_type: feature
+#     duration: 1200
+#     steps_executed: 9
+#     success: true
+#     timestamp: 2024-01-01T12:00:00Z

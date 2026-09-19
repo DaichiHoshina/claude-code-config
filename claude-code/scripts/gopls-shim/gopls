@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# serena が起動する gopls を daemon 共有 mode で立ち上げる PATH shim。
+# serena 側 (solidlsp gopls.py) は cmd="gopls" 固定で引数を足す設定 key がなく、
+# ~/go/bin/gopls の置換は go install の upgrade で silently 元に戻るため、
+# MCP 登録 env の PATH 先頭にこの dir を置く経路を採る。
+# listen timeout を既定 1 分から延ばすのは、session を閉じるたび daemon が落ちて
+# 次 session が index を払い直すのを避けるため。
+set -euo pipefail
+
+GOPLS_BIN="${GOPLS_SHIM_TARGET:-${HOME}/go/bin/gopls}"
+
+if [[ ! -x "${GOPLS_BIN}" ]]; then
+    echo "gopls-shim: ${GOPLS_BIN} が見つからない (go install golang.org/x/tools/gopls@latest)" >&2
+    exit 127
+fi
+
+exec "${GOPLS_BIN}" -remote=auto -remote.listen.timeout=30m "$@"

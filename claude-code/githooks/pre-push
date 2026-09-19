@@ -1,0 +1,6 @@
+#!/bin/bash
+# Pre-push: 共通品質チェック + hook 性能回帰チェックを直列実行
+# 品質チェックは pre-commit を --no-verify で迂回された場合の二重防御。
+# 性能回帰は scripts/git-hooks/pre-push (hook-bench-ci) に委譲し、stdin をそのまま渡す
+"$(dirname "$0")/check-quality.sh" || exit 1
+exec "$(dirname "$0")/../scripts/git-hooks/pre-push" "$@"

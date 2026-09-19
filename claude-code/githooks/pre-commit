@@ -1,0 +1,3 @@
+#!/bin/bash
+# Pre-commit: 共通品質チェックを実行
+exec "$(dirname "$0")/check-quality.sh"

@@ -1,0 +1,266 @@
+#!/usr/bin/env bash
+# context injectors (extracted from pre-tool-use.sh)
+# 多重 source 防止
+if [[ "${_CONTEXT_INJECTORS_LOADED:-}" == "1" ]]; then
+    return 0
+fi
+_CONTEXT_INJECTORS_LOADED=1
+
+# SESSION_ID 空時、$$ (PID) は hook 起動毎に変わり session 内 dedup が機能しないため、
+# cwd の hash を安定 key として使う。cwd hash 単独だと同 repo の別 session が同日 flag を
+# 共有して 2 本目に guard 注入が入らないため、呼び出し元 process (session 単位で安定) の PID を含める。
+# 親 PID が呼び出し毎に変わる環境では over-injection 側になる (under-injection より安全)
+_stable_session_key() {
+  if [[ -n "${SESSION_ID:-}" ]]; then
+    printf '%s' "${SESSION_ID}"
+    return 0
+  fi
+  printf 'cwd%s-p%s' "$(cksum <<< "${CLAUDE_PROJECT_DIR:-${PWD:-$HOME}}" | cut -d' ' -f1)" "${PPID:-0}"
+}
+
+# ====================================
+# 今日の commit inject
+# 書く系 tool (Write/Edit/Bash commit・gh・glab・Slack/Notion MCP) の直前に
+# 今日の commit log を additionalContext に append して、最新規範の反映を促す
+# session 重複抑制: /tmp/claude-today-commits-<SESSION_KEY>-<YYYYMMDD> に記録済フラグ
+# ====================================
+_inject_today_commits() {
+  [[ "${CLAUDE_WRITING_CONTEXT_INJECTION:-0}" == "1" ]] || return 0
+  local _inject_log_dir="$HOME/.claude/logs"
+  local _inject_log_file="${_inject_log_dir}/today-commit-inject.log"
+
+  # session 重複抑制: stdin .session_id ベース (CLAUDE_CODE_SESSION_ID env 優先)
+  # 取得できない場合は cwd hash fallback (_stable_session_key、session 単位の重複抑制を維持)
+  local _session_key; _session_key="$(_stable_session_key)"
+  local _today; printf -v _today '%(%Y%m%d)T' -1
+  local _flag_file="/tmp/claude-today-commits-${_session_key}-${_today}"
+  if [[ -f "$_flag_file" ]]; then
+    return 0
+  fi
+
+  # cap: 行数上限 (env override 可)
+  local _line_cap="${CLAUDE_HOOK_INJECT_CAP:-30}"
+  # cap: commit 数上限 (env override 可)
+  local _commit_cap="${CLAUDE_HOOK_INJECT_COMMIT_CAP:-5}"
+
+  # git log: CLAUDE_PROJECT_DIR 優先、なければ HOME
+  local _project_dir="${CLAUDE_PROJECT_DIR:-$HOME}"
+
+  # Source 1: 作業中 repo の今日の commit
+  local _proj_commits=""
+  _proj_commits=$(git -C "$_project_dir" log --since="midnight" --pretty=format:'%h %s' --no-merges 2>/dev/null | head -n "${_commit_cap}" || true)
+  # 非 git repo は silent skip (log 書かない、975 行 noise を防ぐ)。
+  # debug 用に git repo だが today commit 0 件の case のみ log する場合は
+  # CLAUDE_HOOK_INJECT_LOG_EMPTY=1 を設定する
+  if [[ -z "$_proj_commits" ]] && [[ "${CLAUDE_HOOK_INJECT_LOG_EMPTY:-0}" == "1" ]] \
+      && git -C "$_project_dir" rev-parse --git-dir >/dev/null 2>&1; then
+    mkdir -p "$_inject_log_dir" 2>/dev/null || true
+    printf '[%s] today-commit inject: no commits today at %s\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$_project_dir" >> "$_inject_log_file" 2>/dev/null || true
+  fi
+
+  # Source 2: ai-tools writing 規約関連 commit (guidelines/ と CLAUDE.md 限定)
+  # _project_dir が <repo-root> の時は重複しないよう skip
+  local _aitools_repo_dir
+  _aitools_repo_dir="$(_aitools_dir)"
+  local _writing_commits=""
+  local _aitools_real
+  _aitools_real=$(cd "$_aitools_repo_dir" 2>/dev/null && pwd -P 2>/dev/null || echo "")
+  local _project_real
+  _project_real=$(cd "$_project_dir" 2>/dev/null && pwd -P 2>/dev/null || echo "")
+  if [[ -n "$_aitools_real" && "$_aitools_real" != "$_project_real" ]]; then
+    _writing_commits=$(git -C "$_aitools_repo_dir" log --since="midnight" --pretty=format:'%h %s' --no-merges \
+      -- "claude-code/guidelines/" "claude-code/CLAUDE.global.md" 2>/dev/null | head -n "${_commit_cap}" || true)
+    # 非 git repo は silent skip (上の Source 1 と同方針)
+    if [[ -z "$_writing_commits" ]] && [[ "${CLAUDE_HOOK_INJECT_LOG_EMPTY:-0}" == "1" ]] \
+        && git -C "$_aitools_repo_dir" rev-parse --git-dir >/dev/null 2>&1; then
+      mkdir -p "$_inject_log_dir" 2>/dev/null || true
+      printf '[%s] today-commit inject: no commits today at %s (writing path)\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$_aitools_repo_dir" >> "$_inject_log_file" 2>/dev/null || true
+    fi
+  fi
+
+  # 両方 0 件 → silent skip (フラグも書かない)
+  if [[ -z "$_proj_commits" && -z "$_writing_commits" ]]; then
+    return 0
+  fi
+
+  # フラグ書き込み (以降は重複 inject しない)
+  touch "$_flag_file" 2>/dev/null || true
+
+  local _msg=""
+
+  if [[ -n "$_proj_commits" ]]; then
+    _msg="今日の commit: ${_proj_commits}"$'\n'"writing 規約 / guidelines / CLAUDE.md 更新が含まれる場合、出力前に当該 file を read して最新規範を反映すること。"
+  fi
+
+  if [[ -n "$_writing_commits" ]]; then
+    local _writing_msg="writing 規約 (<repo-root>) の今日更新: ${_writing_commits}"$'\n'"これらを read してから書く。"
+    if [[ -n "$_msg" ]]; then
+      _msg="${_msg}"$'\n'"${_writing_msg}"
+    else
+      _msg="${_writing_msg}"
+    fi
+  fi
+
+  # 行数 cap 適用: _line_cap を超える場合は truncate して末尾に通知行を追加
+  local _total_lines
+  _total_lines=$(printf '%s\n' "${_msg}" | wc -l | tr -d ' ')
+  if [[ "${_total_lines}" -gt "${_line_cap}" ]]; then
+    local _truncated_lines=$(( _total_lines - _line_cap ))
+    _msg=$(printf '%s\n' "${_msg}" | head -n "${_line_cap}")
+    _msg="${_msg}"$'\n'"... (${_truncated_lines} more lines truncated)"
+  fi
+
+  if [[ -n "$ADDITIONAL_CONTEXT" ]]; then
+    ADDITIONAL_CONTEXT="${ADDITIONAL_CONTEXT}"$'\n'"${_msg}"
+  else
+    ADDITIONAL_CONTEXT="${_msg}"
+  fi
+}
+
+# commit/PR 起草前に NG-DICTIONARY の block 系 term を ADDITIONAL_CONTEXT で事前 inject する
+# 目的: 起草段階でNG語を使わせず、block→retry ループを防ぐ (事後型 _inject_principles_on_commit と併存)
+# trigger: git commit / gh pr create / gh pr edit / gh pr review / gh issue create / glab 系コマンド
+# 重複抑制: SESSION_ID ベースの flag file で 1 session 1 回のみ inject
+_inject_ng_dict_on_commit_compose() {
+  [[ "${CLAUDE_WRITING_CONTEXT_INJECTION:-0}" == "1" ]] || return 0
+  local _session_key; _session_key="$(_stable_session_key)"
+  local _today; printf -v _today '%(%Y%m%d)T' -1
+  local _flag_file="/tmp/claude-ng-inject-${_session_key}-${_today}"
+  if [[ -f "$_flag_file" ]]; then
+    return 0
+  fi
+
+  local _ng_dict_file="${HOME}/.claude/guidelines/writing/NG-DICTIONARY.md"
+  local _word_replace_file="${HOME}/.claude/guidelines/writing/PRINCIPLES-word-replace.md"
+
+  # NG-DICTIONARY.md が存在しない場合は silent skip
+  if [[ ! -f "$_ng_dict_file" ]]; then
+    return 0
+  fi
+
+  # block 系 term を動的抽出: "(block)" を含む行から term list を取得
+  # 形式: **<name> (block)**: term1 / term2 / ...
+  local _block_terms=""
+  while IFS= read -r _line; do
+    if [[ "$_line" =~ \(block\) ]]; then
+      # "**: " 以降を term list として取得
+      local _terms_part="${_line#*\*\*: }"
+      if [[ -n "$_terms_part" && "$_terms_part" != "$_line" ]]; then
+        if [[ -n "$_block_terms" ]]; then
+          _block_terms="${_block_terms} / ${_terms_part}"
+        else
+          _block_terms="${_terms_part}"
+        fi
+      fi
+    fi
+  done < "$_ng_dict_file"
+
+  # 1 件も取れなければ silent skip
+  if [[ -z "$_block_terms" ]]; then
+    return 0
+  fi
+
+  # flag 書き込み (以降は重複 inject しない)
+  touch "$_flag_file" 2>/dev/null || true
+
+  # 置換ヒント: PRINCIPLES-word-replace.md があれば非日常英語の主要置換表を付加
+  local _replace_hint=""
+  if [[ -f "$_word_replace_file" ]]; then
+    # leverage/utilize/mitigate 等の代表的な非日常英語置換行を抽出 (最大 5 行)
+    _replace_hint=$(grep -E 'leverage|utilize|mitigate|facilitate|comprehensive' "$_word_replace_file" 2>/dev/null | head -5 | sed 's/^/  /' || true)
+  fi
+
+  local _inject_msg="【起草前 NG 語回避】以下の用語を commit message / PR 本文に使わないでください。source: guidelines/writing/NG-DICTIONARY.md
+block_terms: ${_block_terms}
+【閉じてない文章 NG】常体 plain JP の開いた文章で書く (guidelines/writing/PRINCIPLES.md)。
+  - 名詞句だけでは動作や関係が不明な場合は文に開く。状態を正確に表す短い名詞句は保持してよい
+  - 助詞省略 NG: 「file 編集 → sync 必要」 → 「file を編集したら sync が必要になる」
+  - 名詞ぶつ切り NG: 「修正 3 件、commit 1 個」 → 「修正を 3 件加えて 1 commit にまとめた」"
+  if [[ -n "$_replace_hint" ]]; then
+    _inject_msg="${_inject_msg}
+置換例 (非日常英語 → 平易な日本語):
+${_replace_hint}
+詳細: guidelines/writing/PRINCIPLES-word-replace.md"
+  fi
+
+  if [[ -n "$ADDITIONAL_CONTEXT" ]]; then
+    ADDITIONAL_CONTEXT="${ADDITIONAL_CONTEXT}"$'\n'"${_inject_msg}"
+  else
+    ADDITIONAL_CONTEXT="${_inject_msg}"
+  fi
+
+  # inject 効果計測用 log (trigger tool / block_terms 数)
+  local _SWEEP_LOG="${HOME}/.claude/logs/ng-pre-sweep-inject.log"
+  _rotate_log_if_needed "${_SWEEP_LOG}"
+  local _TS_INJ _NTERMS
+  printf -v _TS_INJ '%(%Y-%m-%dT%H:%M:%S)T' -1
+  _NTERMS=$(awk -F' / ' '{print NF}' <<< "$_block_terms" 2>/dev/null || echo 0)
+  printf '%s | pre-tool-use | trigger=%s | n_terms=%s\n' \
+    "$_TS_INJ" "${TOOL_NAME:-unknown}" "${_NTERMS}" \
+    >> "$_SWEEP_LOG" 2>/dev/null || true
+}
+
+# code file への新規 comment 追加を検出したら code-comment 規範 digest を inject する
+# 目的: canonical (guidelines/writing/code-comment.md) が on-demand で編集時 context に無いため、
+#       編集の瞬間に compact digest を届けて WHY/Why not 限定・分量上限を守らせる
+# 重複抑制: SESSION_ID ベースの flag file で 1 session 1 回のみ inject
+_inject_code_comment_rules() {
+  local _cc_path="$1"
+  local _cc_content="$2"
+  [[ "${CLAUDE_WRITING_CONTEXT_INJECTION:-0}" == "1" ]] || return 0
+  if [[ -z "$_cc_path" || -z "$_cc_content" ]]; then
+    return 0
+  fi
+
+  # code file のみ対象 (md / json / yaml 等の非 code は対象外)
+  local _cc_ext="${_cc_path##*.}"
+  local _cc_re=""
+  case "$_cc_ext" in
+    py|rb|sh|bash|zsh|tf|pl|ex|exs)
+      # shebang (#!) は comment とみなさない
+      _cc_re='^[[:space:]]*#([^!]|$)' ;;
+    sql|lua|hs)
+      _cc_re='^[[:space:]]*--' ;;
+    go|ts|tsx|js|jsx|mjs|cjs|rs|java|kt|kts|c|cc|cpp|h|hpp|swift|php|scala|proto|dart)
+      _cc_re='^[[:space:]]*(//|/\*)' ;;
+    *)
+      return 0 ;;
+  esac
+
+  # session 重複抑制
+  local _session_key; _session_key="$(_stable_session_key)"
+  local _today; printf -v _today '%(%Y%m%d)T' -1
+  local _flag_file="/tmp/claude-comment-inject-${_session_key}-${_today}"
+  if [[ -f "$_flag_file" ]]; then
+    return 0
+  fi
+
+  # extract_json_fields (@tsv) 経由の content は newline が literal \n に escape されるため復元する
+  _cc_content="${_cc_content//\\n/$'\n'}"
+
+  # 新規 content に comment 行が無ければ silent skip (flag も書かない)
+  if ! grep -Eq "$_cc_re" <<< "$_cc_content"; then
+    return 0
+  fi
+
+  touch "$_flag_file" 2>/dev/null || true
+
+  local _cc_msg="【code comment 規範】新規 comment を検出した。canonical: guidelines/writing/code-comment.md
+- default = 書かない。書くなら Why not (採らなかった選択肢と理由) のみ。設計根拠 (WHY) は commit log へ
+- 例外 2 つ: 調べても見つけにくい外部 / 内部運用 memo (MEMO: prefix 必須) / 公開 API の godoc
+- 行数上限は設けない。伝わる最短で止め、行数を埋めるために書き足さない
+- what 言い換え / 開発経緯 / defensive 言い訳 (「念のため」等) / AI marker は禁止
+- 本文は助詞を省かず常体で書く。文体調整のために事実・時制・評価を変えない。文末の句点「。」と「〜だ」断定は付けない
+- 名詞句の圧縮で対象・動作・関係を欠かさない。項目名や結果として意味が完結する名詞句は保持してよい
+- 略称・DesignDoc / 社内 slack 前提の代名詞 (「3 識別子」「例の flag」等) 禁止。初出は具体名に展開する
+- godoc / 関数コメントで書いた内容を実装内 comment で繰り返さない
+- //go:generate 等の独立 directive は無関係シンボル直上に置かない (空行分離必須)
+- 地の文は動詞も一般名詞も日本語 / カナで記述する (「error 判別」「rollback は〜」禁止、エラー / ロールバック等へ開く)。英語のまま維持するのは識別子 / 固有名詞 / 和訳しにくい開発用語のみ
+- 既存 comment が理由と挙動を過不足なく説明しているなら短縮しない"
+
+  if [[ -n "$ADDITIONAL_CONTEXT" ]]; then
+    ADDITIONAL_CONTEXT="${ADDITIONAL_CONTEXT}"$'\n'"${_cc_msg}"
+  else
+    ADDITIONAL_CONTEXT="${_cc_msg}"
+  fi
+}

@@ -1,0 +1,55 @@
+# On-demand rules index
+
+`references/on-demand-rules/` 配下は auto-load 対象外。下記 trigger を満たしたときのみ該当 file を Read する。
+
+## Trigger 一覧
+
+| Trigger | 参照 file |
+|---|---|
+| md heading rename | `markdown-anchor-sync.md` |
+| 集計値・件数・語数を doc に記載する時、canonical list の変更時 | `no-derived-literals.md` |
+| EN refactor、`/claude-update-fix` | `en-conversion-protected.md` |
+| handler・controller・resolver・api・endpoint 実装 | `api-design.md` |
+| `/review` (`--fix` 含む)・`comprehensive-review` skill 発火時 | `review-noise-discard.md` |
+| `review-member` skill の差分外 routine (配置の慣習・変更波及) 実行時 | `review-member-routines.md` |
+| `hooks/` の block・warn 系編集時 | `measure-before-hook-change.md` |
+| hook 新規実装・logic 追加・NG list 変更時 | `hook-implementation-pitfalls.md` |
+| user が chat で語を禁止と言った (「X も禁止にして」)、`[NG語登録]` が注入された | `ng-word-register.md` |
+| `commands/`・`agents/`・`references/` の heading・YAML key・step 番号改変時 | `sync-canonical-with-bats.md` |
+| incident 調査 (5xx・latency・lock 障害の RCA) | `incident-local-repro-not-root-cause.md` |
+| 機能の複数 PR 分割・release 順設計 | `pr-release-order.md` |
+| 大機能を「既存挙動を変えない PR」から積む chain 設計 (dead code first / 確認不要 / flag 有効化 1 行) | `dead-code-first-pr-chain.md` |
+| chain PR (base≠main) 操作 | `chain-pr-main-merge.md` |
+| `/design-doc` `/spec-plan` `/spec-dev` の規則を疑う・規則の出所を知りたい | `spec-flow-episodes.md` |
+| `/spec-plan` の PR 6 項目・行数見積・層切り例外・`--update` の細部が必要 | `spec-plan-phase-anatomy.md` |
+| `/spec-plan` Step 2 の scope 走査 (参照件数 / ORM 登録 / 画面 repo 特定 / DD と code の食い違い) の判定 | `spec-plan-scope-scan.md` |
+| screenshot を外向き text に添付 | `screenshot-resize.md` |
+| feature flag・maintenance flag・config 切替 release | `feature-flag-deploy-order.md` |
+| commit・PR・issue・外向き post 起草時 | `ai-output.md` |
+| `git worktree add` 発行・worktree 手順提案時 | `worktree-branch-name-match.md` |
+| ai-tools で作業開始・main 反映 (wt 隔離 / ff-merge / sync) 時 | `ai-tools-worktree-flow.md` |
+| git merge 承認判断・interrupt 後の再実行・既存 PR branch への push・GitHub comment の整理 | `git-safety-ops.md` |
+| report / HTML 生成 command 実行・生成物の保存先指定 | `report-output-outside-repo.md` |
+| PR checks で集約 job のみ FAILURE (CI fail 調査時) | `ci-flaky-aggregate-job.md` |
+| `Monitor` tool / background bash で外部完了 (CI・job・deploy 等) を待つ時 | `monitor-done-only-output.md` |
+| 実装中に PRD / DesignDoc と実装の乖離を検出した時 | `dd-first-update.md` |
+| MCP 外部 API 利用時・PII 取扱時・AWS SSM 操作時 | `enterprise-security-mcp-pii-ssm.md` |
+| public-repo-private-data-block の incident 経緯を確認したい時 | `public-repo-incident-history.md` |
+| 「他を参考」「参考例」「他ではどう」等の broad search 発話時 | `refer-others-broad-search.md` |
+| 外向き長文 doc (記事・DD・RCA) の draft 完成時、`/jp-fix` の長文 review / rewrite 時 | `natural-japanese-lint.md` |
+| 自然文で `jp-fix` の file 書き換えを頼まれた時 (fork せず inline 実行) | `jp-fix-inline-file-rewrite.md` |
+| skill / command / hook / cron / loop の新設・archive 判断時、health report 閲覧時 | `toolchain-lifecycle.md` |
+| `/workflow` `/loop` template 設計・fan-out / verifier / loop-until-dry を組む時 | `workflow-loop-design.md` |
+| `mcp__serena__*` tool 発火時、Serena error 発生時 | `serena-pitfalls.md` |
+| `gh api --paginate` / PR review コメント bulk 収集・jq 集計時 | `gh-api-pitfalls.md` |
+| Bash tool から sudo / 外部 clone / node / disk 逼迫 command を発行する時 | `bash-tool-environment.md` |
+| hook script / bats / launchd LaunchAgent / 日次 cron・digest を記載する時、macOS BSD awk / bash 3.2 制約に関わる時 | `macos-shell-testing-pitfalls.md` |
+| tmux window の script 量産・GUI app (Raycast 等) からの tmux 操作時 | `tmux-automation-pitfalls.md` |
+| セットアップ / 導入 / 再構築の手順を記載する時、既存環境への適用を案内する時 | `setup-guide-fresh-vs-running.md` |
+| 思考原則 (`rules/thinking-principles.md`) の妥当性を疑う時、同型の失敗を踏んだ時 | `thinking-principles-episodes.md` |
+
+## 運用
+
+- CLAUDE.md 本文は「trigger 一覧: `references/on-demand-rules/README.md`」の 1 行 pointer のみとし、trigger 詳細はここに集約する
+- 新 rule を追加するときは本 table に 1 行追加し、対応 file を同じ dir に置く
+- 削除するときは table 行と file の両方を消す

@@ -1,0 +1,39 @@
+# sleep mine ({{DATE}})
+
+## Objective
+
+末尾の harvest digest から、反復している課題・失敗 pattern・改善機会を抽出し、proposal file `{{TARGET_FILE}}` を Edit tool で埋める。
+
+## Proposal schema (厳守)
+
+各提案は次の形式で書く。field 名・順序を変えない。
+
+```markdown
+### P1: <一行タイトル>
+
+- Type: new-skill|skill-edit|claude-md|hook|command|cursor|remove のどれか 1 つ
+- Target: <対象 path (repo 相対、`/Users/...` の絶対 path 禁止)。new-skill は新設予定 path を記載する。複数対象を 1 提案にまとめる場合はカンマ区切りで各要素を full な repo 相対 path で記載する (例: `claude-code/skills/a, claude-code/skills/b`。2 個目以降を skill 名だけにしない)>
+- Evidence: <主張 1 文。数値を最低 1 つ含め、使う数値は下の引用行内に現れるものに限る>
+  > <digest の行を一字一句そのままコピペした逐語引用。1 本以上必須、複数行可>
+- Change: <変更内容を 1-3 文で書く>
+- Risk: <副作用・懸念を 1 文で書く>
+```
+
+## Constraints
+
+- file 更新は Edit tool のみを使う (Write / Bash / NotebookEdit / WebFetch / WebSearch / Task は起動時の `--disallowedTools` で遮断される)
+- 編集してよい file は `{{TARGET_FILE}}` だけだ。他の file を変更しない
+- 提案は最大 5 件。digest から evidence を引けない提案は書かない
+- Evidence の引用行 (`> `) は digest の行をそのまま転記する。要約・言い換え・digest 外 file の内容は機械照合で reject される
+- Evidence の要求水準は非対称にする: 追加系 (new-skill / skill-edit / claude-md / hook / command / cursor) は実 session の摩擦事例を必須とし、「あると便利」型は書かない。remove (未使用資産の削除提案) は digest 内の利用ゼロ実測 (skill-eval / usage-stats の数値) だけで提案してよい
+- 迷ったら remove 側を優先する。この toolchain は追加より削減に価値がある
+- 同一理由の複数対象 (例: 未使用 skill 群を一括削除) は 1 提案の Target にカンマ区切りでまとめる。5 件上限を避けるため対象ごとに提案を分割しない
+- digest の "pending improvements" に既載の項目は再提案しない
+- digest の "実装済み対策" にある対策 (hook block / adopt 済み施策 / 却下判断) を再提案しない。violation count が保持されていても実装の不足ではなく別経路の問題として扱う
+- digest の "過去の rejected proposals" にある提案は再生成しない
+- remove 提案の Change は対象 file / dir の `git rm` のみに限定する (保管庫 dir への移動は 2026-08-29 に廃止、復元先は git 履歴)。参照が残存する呼び出し元 file の削除・記述整理を Change に含めたい場合は、その呼び出し元 file を Target へ full path で追加する (2026-08-13 / 2026-08-17 に同じ Target scope 逸脱で 2 回連続 reject 済み)
+- 提案が 1 件もなければ file 先頭行に `NO-PROPOSAL: <理由 1 行>` と書く
+
+## Escalation
+
+判断に迷う場合は無理に提案せず NO-PROPOSAL にする。人間への質問はできない前提で動く。

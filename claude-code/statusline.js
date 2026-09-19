@@ -1,0 +1,398 @@
+#!/usr/bin/env node
+// @ts-check
+// statusline.js - Claude Code statusline
+// 表示: @e9│46% █░░│Fable 5 H│◈main*⇡1(dir)│5h26%·7d12% (5h≥70% 時のみ ↺HH:MM を付ける)
+// worktree 時: ◈wt:<worktree名>*⇡1(branch)
+// 幅超過時は右の情報を rate, bar, suffix, dir, model の順に段階的へ省略する
+// 左端の session 識別子と使用率は落とさない (他 session からの宛先識別に使う)
+
+const path = require("path");
+
+// ANSI 256color
+const C = {
+  R: "\x1b[0m",
+  bold: "\x1b[1m",
+  dim: "\x1b[2m",
+  cyan: "\x1b[38;5;244m",
+  magenta: "\x1b[38;5;96m",
+  white: "\x1b[38;5;248m",
+  green: "\x1b[38;5;65m",
+  yellow: "\x1b[38;5;137m",
+  red: "\x1b[38;5;131m",
+  brightRed: "\x1b[38;5;124m",
+  reverse: "\x1b[7m",
+  gray: "\x1b[38;5;243m",
+  darkGray: "\x1b[38;5;238m",
+  branchColor: "\x1b[38;5;103m",
+  modelColor: "\x1b[38;5;138m",
+  tokenColor: "\x1b[38;5;244m",
+};
+
+/**
+ * プログレスバーを生成
+ * @param {number} pct - 0-100
+ * @param {number} width - バー幅
+ * @returns {string}
+ */
+function progressBar(pct, width) {
+  // pct が 0-100 域外でも repeat(負数) の RangeError で行全体を失わないよう clamp
+  const filled = Math.max(0, Math.min(width, Math.round((pct / 100) * width)));
+  const empty = width - filled;
+  const filledChar = "\u2588"; // █
+  const emptyChar = "\u2591"; // ░
+
+  let barColor;
+  if (pct >= 90) barColor = C.red;
+  else if (pct >= 70) barColor = C.yellow;
+  else barColor = C.green;
+
+  return `${barColor}${filledChar.repeat(filled)}${C.darkGray}${emptyChar.repeat(empty)}${C.R}`;
+}
+
+/**
+ * Gitブランチ名を取得
+ * @param {string} cwd
+ * @returns {string}
+ */
+function getGitBranch(cwd) {
+  try {
+    const { execSync } = require("child_process");
+    return (
+      execSync("git rev-parse --abbrev-ref HEAD", {
+        cwd,
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "ignore"],
+        timeout: 2000,
+      }).trim() || "?"
+    );
+  } catch {
+    return "?";
+  }
+}
+
+/**
+ * Git状態をまとめて取得 (1回のシェル呼び出し)
+ * @param {string} cwd
+ * @returns {{branch: string, dirty: number, ahead: number, behind: number}}
+ */
+function gitInfo(cwd) {
+  try {
+    const { execSync } = require("child_process");
+    const out = execSync(
+      'b=$(git rev-parse --abbrev-ref HEAD); ' +
+        // status は index.lock を取らせない (worktree での commit 衝突・timeout kill 残留 lock 防止)
+        "s=$(git --no-optional-locks status --porcelain 2>/dev/null | wc -l); " +
+        'ab=$(git rev-list --left-right --count "@{u}...HEAD" 2>/dev/null || printf "0\\t0"); ' +
+        'printf "%s\\n%s\\n%s" "$b" "$s" "$ab"',
+      { cwd, encoding: "utf8", stdio: ["pipe", "pipe", "ignore"], timeout: 2000 },
+    ).split("\n");
+    const branch = (out[0] || "?").trim() || "?";
+    const dirty = parseInt(out[1], 10) || 0;
+    // rev-list --left-right --count @{u}...HEAD → "behind<TAB>ahead"
+    const ab = (out[2] || "").trim().split(/\s+/);
+    const behind = parseInt(ab[0], 10) || 0;
+    const ahead = parseInt(ab[1], 10) || 0;
+    return { branch, dirty, ahead, behind };
+  } catch {
+    return { branch: "?", dirty: 0, ahead: 0, behind: 0 };
+  }
+}
+
+/**
+ * ワークツリー内かどうか判定
+ * @param {string} cwd
+ * @returns {boolean}
+ */
+function isWorktree(cwd) {
+  try {
+    const { execSync } = require("child_process");
+    const opts = {
+      cwd,
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "ignore"],
+      timeout: 2000,
+    };
+    // 1回のシェル呼び出しで両方取得
+    const out = execSync(
+      'echo "$(git rev-parse --git-dir)\n$(git rev-parse --git-common-dir)"',
+      opts,
+    ).trim();
+    const [gitDir, commonDir] = out.split("\n");
+    return path.resolve(cwd, gitDir) !== path.resolve(cwd, commonDir);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 他 session が SendMessage 宛先に使う session 名を取得する。
+ * ~/.claude/sessions/<pid>.json の sessionId と照合する (name は statusline 入力に来ない)
+ * @param {string|undefined} sessionId
+ * @returns {string}
+ */
+function getSessionName(sessionId) {
+  if (!sessionId) return "";
+  try {
+    const fs = require("fs");
+    const home = process.env.HOME || require("os").homedir();
+    const dir = path.join(home, ".claude", "sessions");
+    for (const f of fs.readdirSync(dir)) {
+      if (!f.endsWith(".json")) continue;
+      try {
+        const j = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
+        if (j.sessionId === sessionId && typeof j.name === "string")
+          return j.name;
+      } catch {
+        // 壊れた / 書き込み途中の file は無視して次を見る
+      }
+    }
+  } catch {
+    // sessions dir なし
+  }
+  return "";
+}
+
+/**
+ * rate limit segment を生成 (5h / 7d window)。field 不在なら空文字
+ * @param {any} rl - data.rate_limits
+ * @returns {string}
+ */
+function rateLimitSeg(rl) {
+  const part = (label, win, withReset) => {
+    if (!win || typeof win.used_percentage !== "number") return "";
+    const p = Math.round(win.used_percentage);
+    let color = C.green;
+    if (p >= 90) color = C.red;
+    else if (p >= 70) color = C.yellow;
+    let s = `${C.dim}${label}${C.R}${color}${p}%${C.R}`;
+    // reset 時刻は残量が気になる 70% 以上のときだけ出す
+    if (withReset && p >= 70 && typeof win.resets_at === "number") {
+      const d = new Date(win.resets_at * 1000);
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      s += `${C.gray}↺${hh}:${mm}${C.R}`;
+    }
+    return s;
+  };
+  // 7d の reset は HH:MM で表せないため 5h 側のみ reset 時刻を付ける
+  const parts = [
+    part("5h", rl && rl.five_hour, true),
+    part("7d", rl && rl.seven_day, false),
+  ].filter(Boolean);
+  return parts.join(`${C.darkGray}·${C.R}`);
+}
+
+/**
+ * @param {any} data - Claude Codeから渡されるJSON
+ */
+function displayStatusLine(data) {
+  const ctx = data.context_window || {};
+  const pct = Math.round(ctx.used_percentage || 0);
+
+  // コンテキスト使用率を一時ファイルに書き出し（auto-compact用）。
+  // reader (hooks/user-prompt-submit.sh) は /tmp/claude-ctx-pct-<session_id> を読むため同じ path に合わせる。
+  // session_id が来ないときは複数 session 相互 clobber を避けるため書き込み自体を skip する。
+  if (data.session_id) {
+    try {
+      require("fs").writeFileSync(
+        `/tmp/claude-ctx-pct-${data.session_id}`,
+        String(pct),
+      );
+    } catch {
+      // ignore
+    }
+  }
+  const fs = require("fs");
+  const launchCwd = data.cwd || process.cwd();
+  // マーカーファイルから実作業ディレクトリを取得
+  let cwd = launchCwd;
+  if (data.session_id) {
+    // marker 名は hook 側 (session-start.sh / post-tool-use.sh) と一致させる:
+    // /tmp/claude-wt-<session_id>-<YYYYMMDD(ローカル)>
+    const d = new Date();
+    const dateToday =
+      String(d.getFullYear()) +
+      String(d.getMonth() + 1).padStart(2, "0") +
+      String(d.getDate()).padStart(2, "0");
+    try {
+      const wtPath = fs
+        .readFileSync(`/tmp/claude-wt-${data.session_id}-${dateToday}`, "utf8")
+        .trim();
+      if (wtPath && fs.existsSync(wtPath)) cwd = wtPath;
+    } catch {
+      // no marker
+    }
+  }
+  const dirName = path.basename(cwd);
+  const git = gitInfo(cwd);
+  const wt = isWorktree(cwd);
+  const rawModel = (data.model && data.model.display_name) || "?";
+  const model = rawModel.replace(/^Claude\s+/i, "").replace(/\s*\(.*?\)$/, "");
+
+  const termWidth = process.stdout.columns || 80;
+  // 広い端末でも全幅まで伸ばさない (視認性優先の上限)
+  const maxWidth = Math.min(termWidth, 80);
+  const stripAnsi = (s) => s.replace(/\x1b\[[0-9;]*m/g, "");
+  // 実端末での表示幅: East Asian Wide (CJK/かな/ハングル/全角) と絵文字、実測 2 桁の記号のみ 2 と数える
+  // (旧 ‼-㊙ の広域 range は │ や矢印など幅 1 の記号まで 2 と数え、幅予算を狂わせていた)
+  const WIDE =
+    /[ᄀ-ᅟ⺀-꓏가-힣豈-﫿︰-﹏＀-｠￠-￦\u{1F000}-\u{1FFFF}⚠⛔◈█░⇡⇣▲💭]/u;
+  const w = (s) => {
+    const stripped = stripAnsi(s);
+    let n = 0;
+    for (const ch of stripped) n += WIDE.test(ch) ? 2 : 1;
+    return n;
+  };
+  // 表示幅基準で短くする (code unit 基準だと wide 文字入り名で幅超過し、絵文字を分断する)
+  const trunc = (s, max) => {
+    if (max <= 1 || w(s) <= max) return s;
+    let out = "";
+    let n = 0;
+    for (const ch of s) {
+      const cw = WIDE.test(ch) ? 2 : 1;
+      if (n + cw > max - 1) break;
+      out += ch;
+      n += cw;
+    }
+    return out + "…";
+  };
+
+  // effort / thinking バッジ
+  const effortLevel =
+    (data.effort && data.effort.level) || data.effort_level || null;
+  const thinkingOn =
+    (data.thinking && data.thinking.enabled === true) ||
+    data.thinking_enabled === true;
+  const badges = [];
+  if (effortLevel === "max")
+    badges.push(`${C.bold}${C.reverse}${C.red}Mx${C.R}`);
+  else if (effortLevel === "xhigh")
+    badges.push(`${C.bold}${C.brightRed}xH${C.R}`);
+  else if (effortLevel === "high") badges.push(`${C.bold}${C.red}H${C.R}`);
+  else if (effortLevel === "medium") badges.push(`${C.yellow}M${C.R}`);
+  else if (effortLevel === "low") badges.push(`${C.dim}L${C.R}`);
+  if (thinkingOn) badges.push(`${C.magenta}\u{1F4AD}${C.R}`);
+  const badgeStr = badges.length ? ` ${badges.join(" ")}` : "";
+
+  // コンテキスト使用率 (常に先頭 = 絶対に見切れない)
+  let pctColor;
+  let suffix = "";
+  if (pct >= 90) {
+    pctColor = C.red;
+    suffix = ` ${C.bold}${C.red}⛔ /reload${C.R}`;
+  } else if (pct >= 70) {
+    pctColor = C.yellow;
+    suffix = ` ${C.bold}${C.yellow}⚠ /compact${C.R}`;
+  } else if (pct >= 50) {
+    pctColor = C.yellow;
+    suffix = ` ${C.dim}${C.yellow}▲${C.R}`;
+  } else {
+    pctColor = C.green;
+  }
+  const pctCore = `${pctColor}${C.bold}${pct}%${C.R}`;
+  const bar = progressBar(pct, 3);
+
+  const modelSeg = `${C.modelColor}${model}${C.R}${badgeStr}`;
+
+  const rateSeg = rateLimitSeg(data.rate_limits);
+
+  // derived name (例: ai-tools-f1) は前半が cwd 由来で dir 名と重複するため末尾だけ表示する。
+  // user-named session (例: "37800-be-2 @ 37800-be-2") は "@" 以降が cwd 表示の重複で、
+  // 前半の slug 全体が SendMessage 宛先の name そのものなので、末尾だけに削ると特定できなくなる。
+  const rawSessionName = getSessionName(data.session_id);
+  const atIdx = rawSessionName.indexOf(" @ ");
+  const sessionId =
+    (atIdx !== -1
+      ? rawSessionName.slice(0, atIdx)
+      : rawSessionName.split("-").pop()) || "";
+  const sessionSeg = sessionId ? `${C.gray}@${sessionId}${C.R}` : "";
+
+  // git 状態マーク: * = 未コミット変更, ⇡ n = push 待ち, ⇣ n = pull 待ち
+  let markStr = "";
+  if (git.dirty) markStr += `${C.yellow}*`;
+  if (git.ahead) markStr += `${C.green}⇡${git.ahead}`;
+  if (git.behind) markStr += `${C.red}⇣${git.behind}`;
+  if (markStr) markStr += C.R;
+  // worktree 時は wt:<worktree 名> を最優先で残し、branch 名を () に回す
+  // 通常 repo は branch 名を最優先で残し、dir 名を () に回す
+  // primary をこれ未満に潰すくらいなら後方 feature を落とす (allowSqueeze 時のみ強行)
+  const MIN_PRIMARY = 8;
+  const buildLoc = (maxLen, showDir, allowSqueeze) => {
+    if (git.branch === "?") {
+      return `${C.cyan}◈${C.gray}${trunc(dirName, Math.max(maxLen - 2, 2))}${C.R}`;
+    }
+    const primary = wt ? dirName : git.branch;
+    const secondary = wt ? git.branch : dirName;
+    const wtPrefix = wt ? `${C.yellow}wt:${C.R}` : "";
+    const primaryColor = wt ? C.yellow : C.branchColor;
+    const secPart = showDir ? `${C.dim}(${secondary})${C.R}` : "";
+    const overhead = w("◈") + w(wtPrefix) + w(markStr) + w(secPart);
+    const budget = maxLen - overhead;
+    if (!allowSqueeze && budget < Math.min(w(primary), MIN_PRIMARY)) {
+      return null;
+    }
+    const p = trunc(primary, Math.max(budget, 2));
+    return `${C.cyan}◈${wtPrefix}${primaryColor}${p}${C.R}${markStr}${secPart}`;
+  };
+
+  const sepStr = `${C.darkGray}│${C.R}`;
+  const sepLen = w(sepStr); // 幅予算と最終 check (w(text)) の基準を一致させる
+
+  const emit = (text) => console.log(text);
+
+  // 極小端末 → pctのみ
+  if (termWidth < 40) {
+    emit((sessionSeg ? `${sessionSeg}${sepStr}` : "") + pctCore + suffix);
+    return;
+  }
+
+  // 後ろの要素ほど先に落とす (rate → bar → suffix → dir → model)
+  const features = ["model", "dir", "suffix", "bar", "rate"];
+  const LOC = Symbol("loc");
+  for (let drop = 0; drop <= features.length; drop++) {
+    const on = new Set(features.slice(0, features.length - drop));
+    let pctSeg = pctCore;
+    if (on.has("bar")) pctSeg += ` ${bar}`;
+    if (on.has("suffix")) pctSeg += suffix;
+    /** @type {any[]} */
+    const segs = sessionSeg ? [sessionSeg, pctSeg] : [pctSeg];
+    if (on.has("model")) segs.push(modelSeg);
+    segs.push(LOC);
+    if (on.has("rate") && rateSeg) segs.push(rateSeg);
+    const fixed =
+      segs.filter((s) => s !== LOC).reduce((a, s) => a + w(s), 0) +
+      sepLen * (segs.length - 1);
+    const loc = buildLoc(maxWidth - fixed, on.has("dir"), drop === features.length);
+    if (loc === null) continue;
+    const text = segs.map((s) => (s === LOC ? loc : s)).join(sepStr);
+    if (w(text) <= maxWidth) {
+      emit(text);
+      return;
+    }
+  }
+
+  emit((sessionSeg ? `${sessionSeg}${sepStr}` : "") + pctCore);
+}
+
+if (require.main === module) {
+  let input = "";
+  process.stdin.on("data", (chunk) => (input += chunk));
+  process.stdin.on("end", () => {
+    try {
+      displayStatusLine(JSON.parse(input));
+    } catch {
+      console.log("[Status Unavailable]");
+    }
+  });
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    displayStatusLine,
+    getGitBranch,
+    gitInfo,
+    isWorktree,
+    progressBar,
+    getSessionName,
+  };
+}

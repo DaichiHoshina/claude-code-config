@@ -1,0 +1,18 @@
+{
+  "name": "claude-code-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Claude Code configuration tools - tests and utilities",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:bats:unit": "./scripts/bats-run-locked.sh tests/unit/",
+    "test:bats:integration": "./scripts/bats-run-locked.sh tests/integration/",
+    "test:bats": "npm run test:bats:unit && npm run test:bats:integration",
+    "test:bats:changed": "./scripts/bats-report.sh --changed"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2"
+  }
+}
