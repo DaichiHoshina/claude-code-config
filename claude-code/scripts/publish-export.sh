@@ -12,7 +12,8 @@
 #   publish-export.sh --init             公開 repo を private で作成し初回 export する (Phase 3)
 #   publish-export.sh [--accept-new]     export (検査を通過したら公開 repo を更新する)   (Phase 3)
 #
-# 判定の順序 (DD 6.1): term list、staging 作成と置換、秘匿検査、初出 file、置換と commit の順。
+# 判定の順序 (DD 6.1): term list、staging 作成と置換、root file (README / LICENSE) の staging、
+#              秘匿検査、初出 file、置換と commit の順。root file は置換の対象外で、秘匿検査だけを当てる。
 # 秘匿検査は fail-closed で、term list が不在か placeholder (term 0 件) なら停止する (DD 決定 2)。
 # =============================================================================
 set -euo pipefail
@@ -23,6 +24,8 @@ source "${SCRIPT_DIR}/../lib/print-functions.sh"
 
 SOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
 STAGING_DIR=""
+# 公開 repo の root に置く file (README / LICENSE) の staging。秘匿検査の対象にする
+ROOT_STAGING=""
 KEEP_STAGING=0
 MODE="export"
 ACCEPT_NEW=0
@@ -214,6 +217,20 @@ apply_replace_rules() {
 }
 
 # -----------------------------------------------------------------------------
+# staging (claude-code/ 配下) と root staging (README / LICENSE) の両方に同じ grep を当てる。
+# hit の file 名は公開 repo での path と同じ形にする
+scan_secret_dirs() {
+    local dir
+    for dir in "$STAGING_DIR" "$ROOT_STAGING"; do
+        [[ -d "$dir" ]] || continue
+        if [[ "$dir" == "$STAGING_DIR" ]]; then
+            (cd "$dir" && "$@" 2>/dev/null | sed "s:^\./:${PUBLISH_SUBDIR}/:") || true
+        else
+            (cd "$dir" && "$@" 2>/dev/null | sed 's:^\./::') || true
+        fi
+    done
+}
+
 # 秘匿検査。term list 2 file の語と固定 pattern (個人 home の絶対 path / ghq 配下 / mail address) を
 # staging 全体に当てる。hit 1 件でも停止する
 # -----------------------------------------------------------------------------
@@ -222,9 +239,15 @@ check_secrets() {
     terms=$( { load_terms "$SOCIAL_HIT_TERM_FILE"; load_terms "$PRIVATE_TERM_FILE"; } | sort -u)
     hits=""
     if [[ -n "$terms" ]]; then
-        hits=$(cd "$STAGING_DIR" && grep -rnoF -f <(printf '%s\n' "$terms") . 2>/dev/null | sed 's:^\./::' || true)
+        # term は file へ書き出す。process substitution は pipe なので、
+        # 2 つ目の dir を検査する grep が空の入力を読む
+        local term_file
+        term_file="$(mktemp "${TMPDIR:-/tmp}/publish-terms.XXXXXX")"
+        printf '%s\n' "$terms" > "$term_file"
+        hits=$(scan_secret_dirs grep -rnoF -f "$term_file" .)
+        rm -f "$term_file"
     fi
-    fixed_hits=$(cd "$STAGING_DIR" && grep -rnoE -e "$HOME" -e '<ghq-root>/' -e '[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.[A-Za-z0-9.-]*[A-Za-z]{2,}' . 2>/dev/null | sed 's:^\./::' || true)
+    fixed_hits=$(scan_secret_dirs grep -rnoE -e "$HOME" -e '<ghq-root>/' -e '[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.[A-Za-z0-9.-]*[A-Za-z]{2,}' .)
     if [[ -z "$hits" && -z "$fixed_hits" ]]; then
         report PASS secrets "term と固定 pattern の hit 0 件"
         return 0
@@ -372,6 +395,26 @@ create_remote_repo() {
 }
 
 # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 公開 repo の root に置く README と LICENSE を staging へ copy する。置換 rule は
+# 当てない。README は公開するために手で書く file なので、個人 path が入っていたら
+# 書き換えるのでなく秘匿検査で止めて書き手に直させる (置換すると owner 名を含む
+# clone URL まで書き換わる)
+# -----------------------------------------------------------------------------
+stage_root_files() {
+    local n=0
+    mkdir -p "$ROOT_STAGING"
+    if [[ -f "$README_SRC" ]]; then
+        cp "$README_SRC" "${ROOT_STAGING}/README.md"
+        n=$((n + 1))
+    fi
+    if [[ -f "$LICENSE_SRC" ]]; then
+        cp "$LICENSE_SRC" "${ROOT_STAGING}/LICENSE"
+        n=$((n + 1))
+    fi
+    report PASS root-files "root に置く ${n} file を検査の対象にした"
+}
+
 # clone の内容を staging で置き換える。.git と manifest 以外を削除してから copy するので、
 # allowlist から除いた file は公開 repo からも削除される (DD 決定 3)
 # -----------------------------------------------------------------------------
@@ -383,8 +426,8 @@ sync_to_clone() {
     done < <(cd "$CLONE_DIR" && ls -A)
     mkdir -p "${CLONE_DIR}/${PUBLISH_SUBDIR}"
     (cd "$STAGING_DIR" && rsync -a ./ "${CLONE_DIR}/${PUBLISH_SUBDIR}/")
-    [[ -f "$README_SRC" ]] && cp "$README_SRC" "${CLONE_DIR}/README.md"
-    [[ -f "$LICENSE_SRC" ]] && cp "$LICENSE_SRC" "${CLONE_DIR}/LICENSE"
+    [[ -f "${ROOT_STAGING}/README.md" ]] && cp "${ROOT_STAGING}/README.md" "${CLONE_DIR}/README.md"
+    [[ -f "${ROOT_STAGING}/LICENSE" ]] && cp "${ROOT_STAGING}/LICENSE" "${CLONE_DIR}/LICENSE"
     report PASS sync "clone を staging で置き換えた ($(staging_files | wc -l | tr -d ' ') file)"
 }
 
@@ -456,7 +499,7 @@ main() {
 
     if [[ -z "$STAGING_DIR" ]]; then
         STAGING_DIR="$(mktemp -d "${TMPDIR:-/tmp}/publish-export.XXXXXX")"
-        trap 'rm -rf "$STAGING_DIR"' EXIT
+        trap 'rm -rf "$STAGING_DIR" ${ROOT_STAGING:+"$ROOT_STAGING"}' EXIT
     else
         # --staging は毎回空から作る。既存 dir を削除するので、
         # 絶対 path に解決してから root と home と SoT 配下を拒否する。
@@ -476,6 +519,9 @@ main() {
         mkdir -p "$STAGING_DIR"
     fi
     STAGING_DIR="$(cd "$STAGING_DIR" && pwd -P)"
+    # root staging は staging と同じ寿命にする (--staging 指定時は検査後も残す)
+    ROOT_STAGING="${STAGING_DIR}.root"
+    rm -rf "${ROOT_STAGING:?}"
 
     print_header "publish-export (${MODE}) SoT=${SOT_DIR}"
     if [[ -n "$(git -C "$SOT_DIR" status --porcelain 2>/dev/null)" ]]; then
@@ -485,6 +531,7 @@ main() {
     build_staging
     prune_untracked
     apply_replace_rules
+    stage_root_files
     check_secrets
 
     # 秘匿検査を通過してから公開 repo に接続する。init は repo の作成も行う
