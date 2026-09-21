@@ -103,6 +103,7 @@ Position and transitions of 6 commands from requirements clarification through i
 - 小さい開発では Design Doc と作業計画書を作らない。spec 系 4 本は大きい開発専用で、command 名の `spec-` 前方一致がその見分けになる
 - 小さい開発の `/prd` は chat へ出す形でよく、md にしなくてよい (`commands/prd.md`)
 - 実装の進め方 (inline / `/dev` / `/flow` N / `/workflow`) は `commands/plan.md` Step 2 の実行 mode 判定表が canonical で、この表では決めない
+- **各 command は Next を 1 行記載する**: 出口が一意に決まる command は、出力の末尾に `Next: /cmd  (理由)` を 1 行記載する。出口が複数ある read-only の command (`/grill` 等) は記載しない。自動で次へ進むのは `/plan --go` と `/flow --auto` だけで、大きい開発の Phase 境界は user が発火する (`commands/spec-dev.md` Step 4)
 - **小さい開発へ下げない変更**: 破壊的変更 / migration / 複数 component にまたがる機能は、規模が小さく見えても大きい開発の track で扱う。判定表と失敗 pattern: `../guidelines/common/spec-driven-development.md`
 
 ## Q1-Q5 inheritance

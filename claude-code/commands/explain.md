@@ -94,3 +94,7 @@ code の引用は説明に必要な行だけを fenced code block に分離す�
 ## Read-only
 
 file 編集 / 投稿 / memory 保存をしない。説明の途中で欠陥に気づいたら「注意点」に 1 行で書くに留め、修正は `/review` や `/dev` へ委ねる。
+
+## Next
+
+説明の末尾に 1 行記載する: 「注意点」を記載したなら `Next: /review  (指摘を先に処理する)`、無ければ `Next: /git-push --pr  (理解できたので PR へ)`。

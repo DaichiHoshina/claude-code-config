@@ -147,3 +147,7 @@ Fan-out `reviewer-agent` × N in parallel; each lens blind to others. Source: [c
 `--verifier-panel` の 3 lens (correctness / consistency / boundary) の定義と delegation prompt: `agents/reviewer-agent.md` `## Lens-specific mode` (canonical、ここに重複させない).
 
 **Common rules**: pass diff + assigned focus only / fire N lens in **1 message bundle** (`Task(reviewer-agent)` × N, peak_concurrency=N, sequential forbidden) / aggregation by `file:line` key (2/N+ → max severity → Stage A / 1/N → P3 silent / all miss → clean) / **default OFF**, limited to large-PR pre-merge final check / `--verifier-panel` token cost = N×, `--multi --verifier-panel=3` = 12× cost so pick one / apply CLAUDE.md `1 dev = 1 file` + parent oversight.
+
+## Next
+
+review の末尾に 1 行記載する (`--fix` / `--push` 指定時は loop が続きを担うので記載しない): Critical / Warning あり → `Next: /review --fix` / 自分の PR に未対応 comment あり → `Next: /self-review-fix` / findings 0 → `Next: /git-push --pr`。

@@ -139,4 +139,8 @@ Required: impl → /lint-test → /review → review-fix → /git-push. 2× fail
 
 worktree apply decision: `references/PARALLEL-PATTERNS.md#worktree-applicability-flow`.
 
+## Next
+
+`--auto` 未指定で実装が終わったら末尾に 1 行記載する: review 未実施なら `Next: /review --fix`、済んでいるなら `Next: /git-push --pr  (PR を作成する)`。`--auto` は PR まで自分で進むので Next を記載しない。
+
 ARGUMENTS: $ARGUMENTS

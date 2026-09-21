@@ -91,6 +91,17 @@ Trailer literal: `references/agent-output-schema.md` (no duplicate definition he
 | `--debate`: one agent fails | use remaining output, flag one-sided bias |
 | both agents fail | stop + escalate to user (see Gate 3) |
 
+## Next
+
+出力の末尾に 1 行記載する。
+
+| 状態 | Next |
+|---|---|
+| 要求が固まり、要件整理へ進む | `/prd <feature>` |
+| 要求も設計も固まった | `/plan <task>` (大きい開発は `/spec-design`) |
+| 案の主張が実物と合うか不明 | `/fact-check` |
+| 前提の不足を突きたい | `/grill <設計案>` |
+
 ## Notes
 
 - Superpowers plugin install required; activate after Claude Code restart

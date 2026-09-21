@@ -43,7 +43,7 @@ Claude Code を毎日の開発で使うための設定一式をまとめてい�
 
 ## 使い方の例
 
-ある日の流れを示す。下の図は変更の規模で分かれる 3 つの道順のうち、大きい開発 (複数 service や DB が変わる変更) の道順だ。1 file の修正なら `/dev` だけ、単一 service 内の機能追加なら `/prd` → `/plan` → `/dev` の短い道順になる。3 つの判定は `references/design-phase-flow.md` にある。
+ある日の流れを示す。下の図は変更の規模で分かれる 3 つの道順のうち、大きい開発 (複数 service や DB が変わる変更) の道順だ。1 file の修正なら `/dev` だけ、単一 service 内の機能追加なら `/prd`、`/plan`、`/dev` の順に進む短い道順になる。どの道順を選ぶかの判定は `references/design-phase-flow.md` にある。
 
 ```mermaid
 flowchart TD
@@ -70,14 +70,14 @@ flowchart TD
    - `scripts/spec-gate.sh` で 400 行超と想定行数の欠けを判定する
 4. **実装する** (`/spec-dev --phase 1`)
    - Phase 1 だけを対象にする
-   - 完了条件の test を実行してから完了報告が出力される
+   - 完了条件の test を実行してから報告を出力する
 5. **差分を確かめて修正する**
    - `/explain` で差分の説明を受け、自分の言葉で説明できるか確かめる
    - `/review --fix` で指摘の修正を繰り返す
 6. **PR まで進める** (`/git-push --pr`)
    - commit、push、PR 作成を 1 command でまとめて実行する
 
-文体の検査は上の流れの全体に掛かる。
+hook は上の流れのどの段階でも文体を検査する。
 
 - chat の文体が規範から外れると、stop hook が応答を止めて書き直しを求める
 - file への書き込みも同じ辞書で検査するため、PR 本文や Design Doc にも同じ文体が保たれる
@@ -89,14 +89,14 @@ flowchart TD
 - **全部を取り込む**: clone してから `claude-code/` 配下の install script と sync script を実行する
 
   ```bash
-  git clone https://github.com/<owner>/claude-code-config.git
+  git clone https://github.com/DaichiHoshina/claude-code-config.git
   cd claude-code-config
   ./claude-code/install.sh              # ~/.claude/ の dir 作成と symlink
   ./claude-code/sync.sh to-local --yes  # repo の内容を ~/.claude/ へ反映
   ```
 
 - **一部だけ取り込む**: 該当 dir の file を自分の `~/.claude/` の同じ場所へ copy する
-  - command と skill の多くは `references/` や `guidelines/` の file を参照する (commands 46 件のうち 43 件)。1 file だけ copy すると参照先が欠けるので、参照先も併せて copy する
+  - command と skill の多くは `references/` や `guidelines/` の file を参照する (commands 48 件のうち 40 件)。1 file だけ copy すると参照先が欠けるので、参照先も併せて copy する
   - hook は `templates/settings.json.template` の `hooks` 節と対で動くため、hook を取り込むときは settings も合わせる
 - **既に自分の `~/.claude/` がある**: `sync.sh to-local` は上書き前に backup を作る
   - 事前に `./claude-code/sync.sh to-local --dry-run` で差分を確認する
@@ -118,10 +118,10 @@ flowchart LR
 | dir              | 役割                                                                                 |
 | ---------------- | ------------------------------------------------------------------------------------ |
 | `commands/`      | slash command の定義 (`/plan` / `/dev` / `/review` / `/spec-design` など)             |
-| `skills/`        | 特定の作業手順を定義した skill (`writing-knowledge` / `local-docs` / `git-push` など) |
+| `skills/`        | 特定の作業手順を定義した skill (`writing-knowledge` / `comprehensive-review` / `root-cause` など) 12 件 |
 | `agents/`        | explore / developer / reviewer などの agent 定義                                      |
 | `hooks/`         | PreToolUse / Stop などの hook script と、その lib                                     |
-| `rules/`         | auto-load される短い規範 (思考原則 / 質問抑制 / 秘匿情報の block など)。11 件のうち 6 件は `paths:` で対象の dir を限定する |
+| `rules/`         | auto-load される短い規範 (思考原則 / 質問抑制 / 秘匿情報の block など)。11 件のうち 5 件は `paths:` で対象の言語や file 種別を限定する |
 | `guidelines/`    | 言語別・文書別の詳細規範 (writing / backend / frontend)                              |
 | `references/`    | command や rule から参照する詳細仕様と on-demand rule                                |
 | `scripts/`       | 同期、機械判定、lint、memory 管理などの補助 script                                    |
@@ -137,7 +137,7 @@ flowchart LR
 いくつかの機能は、repo に置けない機体固有の file を `~/.claude/references-private/` から読む。
 
 - この file が無いと、その機能は error にならず通知なく無効になる
-- `install.sh` は `private-name-list.txt` が無いときだけ placeholder を作って警告を 1 行出す。残りの 5 件は自分で配置する
+- `install.sh` は `private-name-list.txt` が無いときだけ placeholder を作って警告を 1 行表示する。残りの 5 件は自分で配置する
 - 6 件の書式と置き場は `references/local-files-setup.md` にある
 
 | file                     | 有効になる機能                                 | 無いときの動作              |

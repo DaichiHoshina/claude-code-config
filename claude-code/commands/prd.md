@@ -105,6 +105,16 @@ AskUserQuestion → fix or approve → `/spec-design` (team-shared design) or `/
 ## 8. Next Steps
 ```
 
+## Next
+
+出力の末尾に 1 行記載する。track の判定は `references/design-phase-flow.md` 「Route selection (3 track)」に従う。
+
+| 状態 | Next |
+|---|---|
+| 単一 service 内の機能追加 (小さい開発) | `/plan <task>` (PRD を入力にする) |
+| 複数 service / API ・ DB ・ 画面が変わる (大きい開発) | `/spec-design --prd <path>` (`--out` で PRD を md に保持してから渡す) |
+| 要求そのものが揃っていない | `/brainstorm` |
+
 **Read-only**: no implementation. Fetch external APIs. Repeatable.
 
 ARGUMENTS: $ARGUMENTS

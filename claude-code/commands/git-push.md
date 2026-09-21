@@ -108,6 +108,10 @@ Auto-comment body は `references/on-demand-rules/ai-output.md` と `PRINCIPLES.
 - Pre-commit user confirm required
 - Behind remote → propose pull
 
+## Next
+
+PR URL の後に 1 行記載する。作業計画書の Phase を実装した PR なら `Next: /spec-dev <SPEC path> --phase <n+1>  (次 Phase へ)`、最終 Phase なら `Next: なし (全 Phase 完了)`。spec 文脈でなければ記載しない。
+
 ## Error handling
 
 No changes → "Already up to date" で終了 / reject (conflict) → `git pull --rebase` を提案 / stash pop fail → conflict 表示 + 手動解消を誘導 / Auth error → SSH key / token 確認を誘導 / PR/MR create fail → push 済 branch URL を表示 / Auto-review fail → PR 作成は成功、review error は warn のみ (PR URL は既に表示済)
