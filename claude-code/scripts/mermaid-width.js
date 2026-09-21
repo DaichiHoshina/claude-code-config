@@ -130,14 +130,27 @@ function layerNodes(nodes, edges) {
     out.get(a).push(b);
     indeg.set(b, indeg.get(b) + 1);
   }
+  // 処理フローの図は閉路を含むことがある (選び直しで前の段へ戻る辺など)。
+  // Kahn の位相ソートは閉路があると queue が空のまま終わり、全 node が段 0 に残って
+  // 幅を 3 倍前後に見積もる (2026-09-20 実測: 6 node の図で 394px が 1218px)。
+  // queue が空になっても未処理の node があれば、入次数が最小のものを段の先頭として再開する
+  const done = new Set();
   const queue = [...indeg].filter(([, d]) => d === 0).map(([id]) => id);
-  while (queue.length) {
-    const a = queue.shift();
-    for (const b of out.get(a)) {
-      rank.set(b, Math.max(rank.get(b), rank.get(a) + 1));
-      indeg.set(b, indeg.get(b) - 1);
-      if (indeg.get(b) === 0) queue.push(b);
+  queue.forEach((id) => done.add(id));
+  for (;;) {
+    while (queue.length) {
+      const a = queue.shift();
+      for (const b of out.get(a)) {
+        rank.set(b, Math.max(rank.get(b), rank.get(a) + 1));
+        indeg.set(b, indeg.get(b) - 1);
+        if (indeg.get(b) === 0 && !done.has(b)) { done.add(b); queue.push(b); }
+      }
     }
+    const rest = [...indeg].filter(([id]) => !done.has(id));
+    if (!rest.length) break;
+    const [seed] = rest.reduce((min, cur) => (cur[1] < min[1] ? cur : min));
+    done.add(seed);
+    queue.push(seed);
   }
   const ranks = [];
   for (const [id, r] of rank) {

@@ -4,9 +4,9 @@ argument-hint: "[--go] <task-or-scope>"
 description: 設計と planning — PO Agent 経由で戦略を組み立てる (read-only、`--go` は investigation を含まない plan だけ implementation まで連結する)
 ---
 
-## Boundary w/ `/design-doc`
+## Boundary w/ `/spec-design`
 
-`/design-doc` = team-shared design decisions (12-section md / input: PRD or NL / direct Edit) vs `/plan` = impl phase breakdown decision (Phase 1/2/... + worktree / input: Design Doc or settled design / PO Agent). Large feature uses both (design-doc → plan); small fix uses plan only. Detail: `references/design-phase-flow.md`.
+`/spec-design` = team-shared design decisions (12-section md / input: PRD or NL / direct Edit) vs `/plan` = impl phase breakdown decision (Phase 1/2/... + worktree / input: Design Doc or settled design / PO Agent). 大きい開発は `/spec-design` → `/spec-plan` を使い、`/plan` は極小と小さい開発で使う。Detail: `references/design-phase-flow.md` 「Route selection (3 track)」.
 
 ## Step 0: Auto-load guidelines (required)
 

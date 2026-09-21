@@ -1,6 +1,6 @@
 {
-  "sot_sha": "068210af4cfb3e0b2f4998246cc1e9b96c3d80a5",
-  "exported_at": "2026-09-19T13:48:31Z",
+  "sot_sha": "c1f009540aea55781d2ccdff48a9ce70ff4ec4c0",
+  "exported_at": "2026-09-21T05:02:16Z",
   "files": [
     "agents/developer-agent.md",
     "agents/developer-agent.toml",
@@ -18,7 +18,6 @@
     "commands/brushup.md",
     "commands/claude-update-fix.md",
     "commands/deep.md",
-    "commands/design-doc.md",
     "commands/dev.md",
     "commands/diagnose.md",
     "commands/explain.md",
@@ -55,6 +54,7 @@
     "commands/self-review-fix.md",
     "commands/serena-update-fix.md",
     "commands/sleep-review.md",
+    "commands/spec-design.md",
     "commands/spec-detail.md",
     "commands/spec-dev.md",
     "commands/spec-plan.md",
@@ -239,6 +239,7 @@
     "references/on-demand-rules/ai-tools-worktree-flow.md",
     "references/on-demand-rules/api-design.md",
     "references/on-demand-rules/bash-tool-environment.md",
+    "references/on-demand-rules/bats-pitfalls.md",
     "references/on-demand-rules/chain-pr-main-merge.md",
     "references/on-demand-rules/ci-flaky-aggregate-job.md",
     "references/on-demand-rules/dd-first-update.md",

@@ -62,7 +62,7 @@ Distilled upper-tier reasoning habits; apply throughout (canonical: `~/.claude/r
 Prompt includes "you are explore1" etc. at startup.
 - Confirm ID, recognize specialization
 - Defaulted to "explore4 (Config)" if unspecified
-- `expected_count` must be 1-4. Never launch or imply an `explore5`; four is the maximum because only `explore1`-`explore4` are defined.
+- `expected_count` is the number of scopes (explore agents) launched in parallel under the same `run_id`, not a findings count. It must be 1-4. Never launch or imply an `explore5`; four is the maximum because only `explore1`-`explore4` are defined.
 
 ## Prompt contract (required)
 
@@ -71,7 +71,7 @@ The parent supplies every field below. Reject an incomplete prompt before explor
 ```yaml
 run_id: <shared identifier for this fan-out>
 scope_id: <unique identifier within run_id>
-expected_count: <1-4>
+expected_count: <1-4, scope count of this run_id (not findings count)>
 target:
   worktree_path: <absolute path>
   branch: <expected branch, or detached-readonly>

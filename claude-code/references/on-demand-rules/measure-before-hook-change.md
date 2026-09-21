@@ -45,6 +45,14 @@ block 系・warn 系・hard-block 系・silent fail 系の経路を追加また�
 
 counter increment は `n=$((n+1))` 形式で書く (`rules/shell.md` の set -e 注意点参照)。
 
+## regression 判定で push が block されたとき
+
+hook 実行 path の実処理 code を変更していないのに pre-push hook が regression を検出したら、noise (cold cache / CPU 負荷で数十 ms ぶれる) を疑う。
+
+1. diff で hook path の実処理 code を変更したか確かめる
+2. 変更していなければ `./claude-code/scripts/hook-bench-ci.sh --update-baseline` を実行し、`.bench-baseline.json` を 1 commit に分けて再 push する。`--no-verify` は使わない
+3. 再計測しても消えないときは、baseline commit を一時 worktree に展開し、同一負荷で HEAD と並べて `hook-bench.sh` の中央値を比べる。HEAD が同等か速ければ、記録済み baseline が空いた時間帯の値だったと確定できる (2026-09-18 に load average 5 の状態で全 hook が +34〜68ms と誤判定された)
+
 ## 違反時
 
 baseline なしで投入した場合、次回 rollout 前に遡って retroactive baseline を記録する。

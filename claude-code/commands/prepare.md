@@ -8,7 +8,7 @@ argument-hint: "<issue URL・番号 | PRD path | 要件 text> [--related <path|U
 
 > **Goal**: 設計を作成する前に、依頼の出典 (issue / PRD / Slack 転記 / 関連 PR) を集めて読み、「誰が何を求めていて、今の code はどうなっていて、何が決まっていないか」を 1 画面で言える状態にする。設計も実装もしない。
 
-**Position**: **`/prepare`** (全体像) → `/prd` (要件) または `/design-doc` (仕様) → `/spec-plan` → `/spec-dev`
+**Position**: **`/prepare`** (全体像) → `/prd` (要件) → 小さい開発は `/plan` → `/dev` or `/flow`、大きい開発は `/spec-design` → `/spec-plan` → `/spec-detail` → `/spec-dev` (3 track の判定: `references/design-phase-flow.md`)
 
 ## When to use (棲み分け)
 
@@ -17,11 +17,11 @@ argument-hint: "<issue URL・番号 | PRD path | 要件 text> [--related <path|U
 | `/prepare` | 出典が複数 (issue + PRD + Slack 等) に散っていて、設計前に全体像をそろえたい |
 | `/brainstorm` | 何を作るか自体が決まっておらず、対話で発散させたい |
 | `/prd` | 要件を 11 persona で点検して PRD にまとめる (`/prepare` の出力を入力にできる) |
-| `/design-doc` | 要件が揃っていて仕様を作成する |
+| `/spec-design` | 要件が揃っていて仕様を作成する |
 | `/workflow understand` | code の subsystem 構造 (entry / 依存 / data flow) を map にする。要求の理解ではない |
 | `/grill` | 設計案がある状態で前提の不足を指摘する |
 
-「全体像把握して」「issue 読んで整理して」「タスク理解して」で発火する。出典が 1 つで数十行ならこの command を使わず、`/design-doc <path>` に直接渡す。
+「全体像把握して」「issue 読んで整理して」「タスク理解して」で発火する。出典が 1 つで数十行ならこの command を使わず、`/spec-design <path>` に直接渡す。
 
 ## Step 1: 出典を集める
 
@@ -46,7 +46,7 @@ argument-hint: "<issue URL・番号 | PRD path | 要件 text> [--related <path|U
 
 ## Step 3: 整理する
 
-- 要求は出典ごとに拾い、`R-n` の ID を振る。1 要求 = 1 文で「〜のとき、〜が〜になる」に寄せ、出典 (issue 番号 / PRD 節 / 発言者) を括弧で添える。`R-n` は `/prd` の `AC-n` と `/design-doc` の受け入れ条件の「由来」列から参照できる
+- 要求は出典ごとに拾い、`R-n` の ID を振る。1 要求 = 1 文で「〜のとき、〜が〜になる」に寄せ、出典 (issue 番号 / PRD 節 / 発言者) を括弧で添える。`R-n` は `/prd` と `/spec-design` の受け入れ条件の「由来」列から参照できる (受け入れ条件の側に ID を振らない。`guidelines/writing/design-doc-protocol.md` 「逆算の 4 原則」)
 - 複数の出典で同じ要求が違う言い方をされていたら 1 つにまとめ、食い違っていたら両方を保持して「未確定点」に上げる。同じ人の発言どうしなら新しい方を推奨にし、別の人どうしなら依頼元 (起票者 / PRD author) の発言を推奨にする。日付の無い出典は新旧比較の根拠にせず、「日付不明」と記載したうえで日付のある発言を推奨にする。推奨は断定でなく「推奨」欄に記載する
 - 未確定点には推奨を 1 つずつ添える (`rules/minimize-questions.md`)。AskUserQuestion は使わず、chat の表で user が差分だけ返せる形にする
 - 制約 (期限 / 非機能 / やらないと決まっていること) は要求と分けて書く
@@ -100,7 +100,7 @@ argument-hint: "<issue URL・番号 | PRD path | 要件 text> [--related <path|U
 | 状態 | Next |
 |---|---|
 | 要求が散っていて優先度や対象外が決まっていない | `/prd <task 名>` (本出力を入力にする) |
-| 要求はそろい、仕様を作成する段 | `/design-doc <task 名>` (`R-n` を受け入れ条件の由来にする) |
+| 要求はそろい、仕様を作成する段 | `/spec-design <task 名>` (`R-n` を受け入れ条件の由来にする) |
 | 1 file / 数十行で設計が不要 | `/dev <task>` |
 | 要求そのものが揺れている | `/brainstorm` |
 | 「前提要確認」の `R-n` がある、または設計可否に不合格がある | 設計に進まず、未確定点を依頼元に戻す (下記「前提要確認ケースの扱い」参照) |
@@ -108,7 +108,7 @@ argument-hint: "<issue URL・番号 | PRD path | 要件 text> [--related <path|U
 ### 前提要確認ケースの扱い
 
 - issue comment の文案を chat に出す (投稿は user が行う)
-- 戻すコメントを投稿した後に限り、該当 `R-n` を Non-Goal に仮置きした `/design-doc` の draft と並走してよい
+- 戻すコメントを投稿した後に限り、該当 `R-n` を Non-Goal に仮置きした `/spec-design` の draft と並走してよい
 - 仮置きは DD の Non-Goals に「依頼元の確認待ち」と明記する
 - 決着したら PRD 側にも書き戻す
 
@@ -125,7 +125,7 @@ argument-hint: "<issue URL・番号 | PRD path | 要件 text> [--related <path|U
 
 ## Step 5: 出力
 
-chat に出す。`--out <path>` のときだけ同じ内容を md に Write する (repo 配下 `.claude/**` へは記載しない)。保存先の既定は無く、`/design-doc --prd` に渡すときは `--out` で PRD 相当の md を保持する。
+chat に出す。`--out <path>` のときだけ同じ内容を md に Write する (repo 配下 `.claude/**` へは記載しない)。保存先の既定は無く、`/spec-design --prd` に渡すときは `--out` で PRD 相当の md を保持する。
 
 ## Guard
 
@@ -137,5 +137,5 @@ chat に出す。`--out <path>` のときだけ同じ内容を md に Write す�
 ## Related
 
 - `references/design-phase-flow.md` — 設計フェーズ全体の遷移
-- `commands/prd.md` / `commands/design-doc.md` — この command の出口
+- `commands/prd.md` / `commands/spec-design.md` — この command の出口
 - `commands/explain.md` — 同じ read-only 説明系 (対象が実装のとき)

@@ -4,7 +4,7 @@ description: 実装から逆算した仕様書型 Design Doc (spec) を md で�
 argument-hint: "[topic | --prd <path> | --update <path>] [--out <path>] [--type spec|full] [--dry]"
 ---
 
-# /design-doc - 実装から逆算した仕様書型 Design Doc
+# /spec-design - 実装から逆算した仕様書型 Design Doc
 
 > **Goal**: Design Doc は、完成形だけでなく、その変更を構成する API・Read / Write・画面・必要なシステム能力まで整理し、SPEC で PR 単位の実装計画へ分解できる状態にする文書。SPEC はその変更面を Phase = PR・層と責務・完了条件へ具体化する文書。file / method / SQL は `/spec-detail` が書く。短く言えば「Design Doc = PR 分割できる粒度までシステム変更面を設計する文書、SPEC = その変更面を実装順と PR へ具体化する文書」(user 決定 2026-09-05)。完成条件は「Design Doc だけを読んだ人が、実装詳細を知らなくても『何を作れば正解か』を判断できる状態」。
 
@@ -21,9 +21,9 @@ argument-hint: "[topic | --prd <path> | --update <path>] [--out <path>] [--type 
 
 判定基準は「それが変わったとき完成形が変わるか」。関数名や処理の分け方が変わっても完成形が同じなら Design Doc の外側になる。ただし **method の「存在」は Design Doc、どの Phase で作るかは SPEC、method の「実装形」は詳細設計**。「発送手続き中の注文が指定サイズを採用しているか判定する Read が必要」までは Design Doc に記載し、その method 名・SQL・呼び出し元は `/spec-detail` が記載する。Design Doc に PR1 / PR2 のような分割は記載しない。
 
-**Position**: `/prepare` (全体像) → `/prd` (要件) → `/design-doc` (仕様 = spec) → `/spec-plan` (Phase = PR 分割) → `/spec-detail` (Phase n の実装方法、省略可) → `/spec-dev` (Phase 実装) → `/explain` (Phase の差分を理解)
+**Position**: `/prepare` (全体像) → `/prd` (要件) → `/spec-design` (仕様 = spec) → `/spec-plan` (Phase = PR 分割) → `/spec-detail` (Phase n の実装方法、省略可) → `/spec-dev` (Phase 実装) → `/explain` (Phase の差分を理解)
 
-> 遷移条件と skip 判断: `references/design-phase-flow.md`
+> この command は 3 track のうち大きい開発でだけ使う。track の判定と遷移条件: `references/design-phase-flow.md` 「Route selection (3 track)」
 
 ## Design philosophy (Read only)
 
@@ -69,7 +69,7 @@ path があって fix keyword が無いときだけ AskUserQuestion で `--prd` 
 | 2 | 目的 | この開発で何を実現したいのか一文で言える。**誰の、どの状況が変わるのかを同じ 1 文に含める**。あわせて「この DD で決める範囲」を 1-2 文で記載し、レビュアーが見るものを最初に掴める | Overview の 1 文目に行為者 (運営 / 出品者 / 購入者 等) と状況が発生している。1 文目と 2 段落目 |
 | 3 | 対象範囲 | 何を変更するのか分かる。Implementation Surface に API (種別 Read / Write、新規 / 既存拡張、責務)、必要な Read / Write の能力 (新規 / 既存)、画面 (FE 側の logic の有無)、DB (新規 table / 既存 table の列追加を 5 列表で) が表で整理され、SPEC が PR 単位に分解できる | Implementation Surface の合計 1 行と 5 表 (Current State の直後に置き、endpoint 名と画面名と table 名で記載する。DB 変更が無いときも Data Schema に「DB 変更なし」の 1 行)。**見出し名と 1 列目の header は `references/design-doc-spec-template.md` のとおりに記載する**。`### Backend API` の 1 列目は `endpoint`、`### Frontend` の 1 列目は `画面` で、能力の 2 表は `### Required Read Capabilities` と `### Required Write Capabilities` にする。`dd-gate.sh` はこの見出しと header で表を特定するので、`### API` や `### 画面` のように言い換えると表 0 行と判定される。合計 1 行の各数は表の行を `grep -c` で数えて書く (header 行と区切り行を除く。列名の「新規 / 既存」が hit に含まれる)。**`Read n / Write n` が指すのは Backend API 表の種別列の内訳**で、能力の表の行数は「Read の能力 n」のように別の語で書き、合計 1 行では API の内訳より後ろに並べる (`dd-gate.sh` は最初に現れた `Read n` を採用する)。**Frontend 表の行は変更がある画面だけにし、画面の変更が無いときは表を作らず合計 1 行に「画面 0」と記載する** (Data Schema の「DB 変更なし」と違い、「変更なし」の行を追加すると合計と行数が食い違う)。endpoint の新規 / 既存拡張と形 (1 件取得 / 一覧) が route 定義と一致する |
 | 4 | 非対象 | 今回やらないことが分かる。空にしない | Non-Goals が 1 行以上 |
-| 5 | 期待する振る舞い | 正常系だけでなく主要な条件分岐 (境界 / 失敗時 / 同時実行 / 再送) も分かる | 各受け入れ条件に境界か失敗時の記述 |
+| 5 | 期待する振る舞い | 正常系だけでなく主要な条件分岐 (境界 / 失敗時 / 同時実行 / 再送) も分かる。分岐のある場面は文章だけで説明せず、図か番号付き手順で示す | 各受け入れ条件に境界か失敗時の記述。`dd-gate.sh` の `behavior-diagram` (分岐のある受け入れ条件が 2 行以上あるのに振る舞いの節へ図も番号付き手順も無いと WARN。分岐語の検出は語彙に依存するため FAIL にしない) |
 | 6 | Acceptance Criteria | 実装後に「完成した」と客観的に判定できる。「〜のとき、〜が〜になる」の形で、真偽が決まる | 各受け入れ条件に対応する振る舞いの節がある (本文に番号は書かない)。PRD と同じ条件を DD に書き直していない |
 | 7 | 外部から見える変更 | API / DB / UI の変更が整理され、変更が無い場合も「変更なし」と分かる | — |
 | 8 | 既存仕様との関係 | 何を維持し、何を変えるのか明確 (PRD から変えた点は「PRD と違う点」と明記し、書き戻す) | 「PRD に書き戻す要件」の表 |

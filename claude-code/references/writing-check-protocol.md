@@ -6,7 +6,7 @@
 
 以下の command が本 protocol を参照する。各 command 側には check 対象の doc 種別のみ記載する。
 
-- `commands/design-doc.md` (Step 8.5)
+- `commands/spec-design.md` (Step 8.5)
 - `commands/prd.md` (Phase 4.5)
 - `commands/post-comment.md` (Step 2.5)
 - `commands/git-push.md` (Step 2 / Step 5.5)

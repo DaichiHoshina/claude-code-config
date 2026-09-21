@@ -46,6 +46,9 @@ rule 以外の repo 固有値もここに宣言し、command 本文には key �
 | `branch_pattern` / `worktree_root` | branch と worktree の命名・置き場所 | `/spec-dev` / `scripts/spec-gate.sh` |
 | `commands.api_docs_gen` | API doc の生成 command | `/spec-plan` |
 | `commands.db_describe` | DB 定義の確認 command | `/spec-dev` |
+| `layers` | 処理経路の層を上流から順に並べた list (例: `["API", "Usecase", "Command", "Query", "DB"]`)。Change Map で全層を描くのに使う | `/spec-plan` |
+
+`layers` の宣言は任意で、Change Map のために全 repo へ要求しない。未宣言の repo では `/spec-plan` が SPEC から確認できる経路の層だけを描き、存在しない層を推測で補わない。
 
 ## large-repo path list (別 file)
 

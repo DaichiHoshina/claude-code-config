@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# spec 型 Design Doc の機械判定 gate。/design-doc Step 6 から呼ぶ。
-# 判定 4 項目: (1) Implementation Surface の合計 1 行と表の行数の一致
+# spec 型 Design Doc の機械判定 gate。/spec-design Step 6 から呼ぶ。
+# 判定 5 項目: (1) Implementation Surface の合計 1 行と表の行数の一致
 #             (2) 未確定 marker と「決める時点 = SPEC 作成前 / DD レビュー」の残存
 #             (3) 「受け入れ条件」 / 振る舞い / 決定事項 の識別子・HTTP status (warn)
 #             (4) 決定事項の表 cell 長 (160 字超は読めない)
+#             (5) 分岐のある受け入れ条件が 2 行以上あるのに振る舞いの図も番号付き手順も無い (warn)
 # 出力: 1 行 1 判定 (PASS / FAIL / WARN)。FAIL が 1 つでもあれば exit 1
 set -u
 
@@ -43,6 +44,11 @@ table_rows() {
   '
 }
 
+# 振る舞いの節の見出し。template は節名を英語にする指定で (design-doc-spec-template.md 「外見」)、
+# Section 6 の英語名は Proposed Design › Data Flow になる。日本語の節名だけで探すと、
+# 規範どおりに書いた DD で節が 0 行になり、図があっても無いと判定する (2026-09-20 実踏)
+BEHAVIOR_PAT='Behavior|振る舞い|Proposed Design'
+
 # (1) 合計 1 行と表の行数
 total_line=$(section '4\. Implementation Surface|Implementation Surface' | grep -m1 '^合計')
 if [ -z "$total_line" ]; then
@@ -70,7 +76,7 @@ oq_block=$(printf '%s\n' "$oq_rows" | grep -E 'SPEC 作成前|DD レビュー' |
 if [ "$oq_block" -eq 0 ]; then report PASS open-deadline '決める時点 = SPEC 作成前 / DD レビュー の未決 0'; else report FAIL open-deadline "SPEC を止める未決 ${oq_block} 件"; fi
 
 # (3) 識別子と HTTP status (warn)
-spec_body=$( { section 'Acceptance Criteria|受け入れ条件'; section 'Behavior|振る舞い'; section 'Design Decisions|決定事項'; } )
+spec_body=$( { section 'Acceptance Criteria|受け入れ条件'; section "$BEHAVIOR_PAT"; section 'Design Decisions|決定事項'; } )
 ident=$(printf '%s\n' "$spec_body" | grep -cE '`[^`]*(/|\.go|\.vue|\.sql|\.ts)[^`]*`|\b(SELECT|INSERT|UPDATE|DELETE) \b' || true)
 status=$(printf '%s\n' "$spec_body" | grep -cE '(^|[^0-9])(200|201|204|400|401|403|404|409|422|500)([^0-9]|$)' || true)
 if [ "$ident" -eq 0 ]; then report PASS ident 'file path / SQL 0'; else report WARN ident "file path / SQL らしき行 ${ident}"; fi
@@ -79,5 +85,21 @@ if [ "$status" -eq 0 ]; then report PASS http-status 'HTTP status 0'; else repor
 # (4) 決定事項の表 cell 長
 long_cells=$(section 'Design Decisions|決定事項' | grep '^|' | grep -v '^| *-' | awk -F'|' '{ for (i = 2; i < NF; i++) if (length($i) > 160) c++ } END { print c + 0 }')
 if [ "$long_cells" -eq 0 ]; then report PASS decision-cell '160 字超の cell 0'; else report FAIL decision-cell "160 字超の cell ${long_cells} (bullet に戻す)"; fi
+
+# (5) 振る舞いの図 (warn)
+# 分岐語の検出は語彙に依存して取りこぼしと誤検出の両方が発生するので FAIL にしない。
+# 閾値 2 は「1 つの分岐なら条件の表 1 行で追える」という template の線引きに合わせた
+# (`references/design-doc-spec-template.md` Section 6「条件の表 1 行では追えない場面に限る」)。
+branch_rows=$(section 'Acceptance Criteria|受け入れ条件' \
+  | grep '^|' | grep -v '^| *-' \
+  | grep -cE '失敗|エラー|重複|同時|期限|取り消|再送|拒否|競合|上限|超え|できない' || true)
+behavior_form=$(section "$BEHAVIOR_PAT" | grep -cE '^```mermaid|^[0-9]+\. ' || true)
+if [ "$branch_rows" -lt 2 ]; then
+  report PASS behavior-diagram "分岐のある条件 ${branch_rows} 行 (2 行未満は図の要否を判定しない)"
+elif [ "$behavior_form" -gt 0 ]; then
+  report PASS behavior-diagram "分岐のある条件 ${branch_rows} 行、振る舞いに図か番号付き手順あり"
+else
+  report WARN behavior-diagram "分岐のある条件 ${branch_rows} 行に対して振る舞いの図も番号付き手順も無い (sequence / state 図か番号付き手順を置く)"
+fi
 
 exit $fail

@@ -13,7 +13,7 @@ PR・Issueコメント・Slack・Notion・DesignDoc等、**他者が読む文章
 ├── jp-lint command … NG 辞書の機械検査を既存文書へ後追い適用（判定 SoT は lib/jp-quality/）
 ├── norm-apply command … 規範差分の checklist retrofit（辞書以外の規範を当てるとき）
 ├── local-docs … HTML 保存工程（本文規範は long-form へ）
-└── design-doc / prd / docs … 成果物工程（writing は Read 指示のみ）
+└── spec-design / prd / docs … 成果物工程（writing は Read 指示のみ）
 
 知識 SoT  guidelines/writing/
 ├── 共通 … PRINCIPLES / NG-DICTIONARY / PRINCIPLES-word-replace / allowed-en-terms

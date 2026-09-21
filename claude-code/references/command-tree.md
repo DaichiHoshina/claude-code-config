@@ -8,23 +8,31 @@
 
 ### 上流: 設計フェーズ
 
-要求の曖昧さに応じて入口を選び、下流へ渡す。遷移条件の詳細は `design-phase-flow.md` を参照する。
+要求の曖昧さに応じて入口を選び、下流へ渡す。入口から先の道順は変更の規模で 3 つの track に分かれる。
+
+| Track | 遷移 |
+|---|---|
+| 極小 | `/dev` |
+| 小さい開発 | `/prd` → `/plan` → `/dev` or `/flow` |
+| 大きい開発 | `/prd` → `/spec-design` → `/spec-plan` → `/spec-detail` → `/spec-dev` → `/explain` |
+
+どの track に当たるかの判定と、track ごとの成果物は `design-phase-flow.md` 「Route selection (3 track)」が canonical となる。下の一覧はこの 3 track に登場する command を入口から順に並べたもので、`(大)` は大きい開発だけで使う command を指す。
 
 - `/prepare` — issue / PRD / 関連 doc を読み込み、task の全体像 (要求 `R-n` / 現状 / 未確定点) を chat に整理する (read-only)
 - `/brainstorm` — 発散し、対話で要求を限定する (`--debate` で賛否 2 agent)
 - `/fact-check` — 案の主張を grep / wc で実測と突き合わせ、採否を判定する
 - `/grill` — 確定前の設計案を詰問し、前提の不足を出す (read-only)
 - `/prd` — 要件定義 (11-persona review)
-- `/design-doc` — 実装から逆算した仕様書型 Design Doc (受け入れ条件の表 + 決定事項。`--type full` で 12-section)
-- `/spec-plan` — Design Doc を Phase = PR の作業計画書 (SPEC) に分け、対象 / 対象外 / 完了条件を記載する。責務までで実装形は記載しない
-- `/spec-detail` — Phase 1 つの実装形 (method / interface / SQL 方針 / TX / テスト観点) を既存 code の調査から決める。単純な Phase は省略する
-- `/spec-dev` — 作業計画書の Phase を 1 つ実装し、完了条件の実行と `/explain` への handoff で閉じる
+- `/spec-design` (大) — 実装から逆算した仕様書型 Design Doc (受け入れ条件の表 + 決定事項。`--type full` で 12-section)
+- `/spec-plan` (大) — Design Doc を Phase = PR の作業計画書 (SPEC) に分け、対象 / 対象外 / 完了条件を記載する。責務までで実装形は記載しない
+- `/spec-detail` (大) — Phase 1 つの実装形 (method / interface / SQL 方針 / TX / テスト観点) を既存 code の調査から決める。単純な Phase は省略する
+- `/spec-dev` (大) — 作業計画書の Phase を 1 つ実装し、完了条件の実行と `/explain` への handoff で閉じる
 - 相談: `/fable` — 難所だけ上位 model に助言を求める (定義 file 方針相談は `--consult`)
 - 深掘り: `/deep` — 入力の状態から詰問 / 発散 / 妥当性判定 / review 観点を判定し fable で思考を掘る router
 
 ### 中央 hub: `/plan`
 
-設計確定後の Phase 分解と実行 mode 判定 (Step 2) を担う。簡易判定だけなら `/mode` を使う (inline / agent 並列の 2 択、判定後そのまま実装)。Step 0 の guideline 読込は `load-guidelines` が担う。
+設計確定後の Phase 分解と実行 mode 判定 (Step 2) を担う。Phase 分解は小さい開発向けで、大きい開発では `/spec-plan` が同じ役割を担う。実行 mode 判定の方は 3 track のどこからでも使う。簡易判定だけなら `/mode` を使う (inline / agent 並列の 2 択、判定後そのまま実装)。Step 0 の guideline 読込は `load-guidelines` が担う。
 
 `/plan` Step 2 が採用する実装 mode:
 
@@ -95,7 +103,7 @@ config / 環境自体の手入れを担う。
 
 | 知りたいこと | 参照先 |
 |---|---|
-| 設計フェーズの遷移条件 / skip 判断 | `design-phase-flow.md` |
+| 設計フェーズの遷移条件 / 3 track の選択 | `design-phase-flow.md` |
 | command ごとの rule / skill / agent 対応 | `command-resource-map.md` |
 | 自然言語 trigger の全 list | `natural-language-triggers.md` |
 | 実行 mode の判定表本体 | `commands/plan.md` Step 2 |

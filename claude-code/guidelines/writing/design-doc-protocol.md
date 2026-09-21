@@ -165,11 +165,11 @@ DD 起草時 / 圧縮 review 時に該当箇所を削る。
 
 ## spec 型 DD (既定): 実装から逆算して書く
 
-`/design-doc` の既定は spec 型 (`references/design-doc-spec-template.md`)。DD を設計の説明ではなく **実装と検証の入力** として書く (user 決定 2026-09-03)。軽量版 / フル版 / 分割型は、repo の規約や規模で節構成を変えたいときの選択肢で、どれを採用してもこの節の 4 原則は変わらない。
+`/spec-design` の既定は spec 型 (`references/design-doc-spec-template.md`)。DD を設計の説明ではなく **実装と検証の入力** として書く (user 決定 2026-09-03)。軽量版 / フル版 / 分割型は、repo の規約や規模で節構成を変えたいときの選択肢で、どれを採用してもこの節の 4 原則は変わらない。
 
 ### 逆算の 4 原則
 
-1. **完了の定義から始める**: 「実装が終わった」と言える条件 (受け入れ条件) を先に表で列挙する。ID は振らない (team の DD に ID の慣習が無く、見出しの番号引用は読む人を表へ戻らせる。user 決定 2026-09-05)。PRD の条件は PRD の番号で参照して DD には書き直さず、DD には PRD に無い条件だけを記載する。本文はこの条件を満たすための説明として記述し、どの条件にも対応しない節は削る
+1. **完了の定義から始める**: 「実装が終わった」と言える条件 (受け入れ条件) を先に表で列挙する。**条件に ID を振らない。`AC-1` / `AC-001` のような label は PRD / DD / SPEC / 詳細設計のどこにも記載しない** (team の DD に ID の慣習が無く、見出しの番号引用は読む人を表へ戻らせる)。条件を後段から指すときは、原文の文を backtick で引用する (`NG-DICTIONARY.md` 「上流 doc からの逐語引用」)。PRD の条件は PRD の番号で参照して DD には書き直さず、DD には PRD に無い条件だけを記載する。本文はこの条件を満たすための説明として記述し、どの条件にも対応しない節は削る
 2. **実装者が迷う点だけ決める**: データ / API / 画面 / 権限 / 失敗時 / 移行 のうち、実装者が code を読んでも決められない点を「決定事項」に記載する。実装の書き方 (層の分け方 / 関数名 / 読み込み済みの再利用) は含めない (「DDと runbook / 実装 docsの役割分担」)
 3. **検証できない仕様は書かない**: 受け入れ条件は「〜のとき、〜が〜になる」の形で、test か手動確認で真偽が判定できる文にする。「適切に」「必要に応じて」を使わない
 4. **後段へ渡せる形にする**: `/spec-plan` が受け入れ条件を文の引用で Phase に割り当て、`/spec-dev` が完了報告で満たした条件を返し、`/review --plan` が条件ごとに実装と test の有無を照合する。条件の総数と本文の説明が一致していることを完成前に確かめる
@@ -299,7 +299,7 @@ DDレビューは観点が独立した 3 段に分け、**別ループで順に�
 **順序が固定の理由**: 内容 → 文 → 構造の順で抽象度が変わる。段 1で内容を修正しても段 2で書き直しが入り、段 2で書き直しても段 3で構造変更が入ると、各段の観点が無効化される。
 
 **運用**:
-- `/design-doc` 出力後・PR 起票前に段 1
+- `/spec-design` 出力後・PR 起票前に段 1
 - PR 起票後・CI 通過後に段 2 (textlint / markdownlintの annotation 確認も含む)
 - 段 3 で「初見の読者が読めるか」を確認する
 - 各段で修正したらコミット + pushを段ごとに分ける (commitメッセージで段がわかる)
@@ -519,5 +519,5 @@ DDを「みやすく / 端的に / 抽象度を上げて」と反復で決めて
 
 - [PRINCIPLES.md](PRINCIPLES.md) — 共通文章原則 (DDにも適用)
 - `references/writing-patterns.md` — 書き直しPhase 1-8、レビュー3段、textlint詳細
-- `references/design-phase-flow.md` — brainstorm → prd → design-doc → spec-plan → spec-detail → spec-dev の遷移
+- `references/design-phase-flow.md` — 3 track の判定。brainstorm → prd → spec-design → spec-plan → spec-detail → spec-dev は大きい開発の遷移で、小さい開発は prd → plan → dev になる
 - `references/design-doc-spec-template.md` — spec 型 template (既定)

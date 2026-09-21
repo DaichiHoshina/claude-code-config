@@ -51,6 +51,8 @@ Claude Code CLI (`~/.local/share/claude/versions/<ver>`) は Bash tool 実行 sh
 
 `mapfile` (別名 `readarray`) も bash 4+ の機能で、3.2 では `mapfile: command not found` になる。`scripts/` 配下には exec 切替の guard が無く user が直接実行するため、array は `while IFS= read -r line; do arr+=("$line"); done < <(cmd)` で作る。空 array へ `${#arr[@]}` を参照すると `set -u` で error になるので `${#arr[@]:-0}` の形にする。shellcheck はこの不足を警告しないので、bats を実行するまで気付かない (2026-09-12 に `scripts/publish-export.sh` で 34 件が全 fail した)。
 
+launchd 発の headless 経路だけ PATH が細く、`env bash` が 3.2 に解決される。通常 session では homebrew の bash 5 に解決されるため、bash 4 専用構文が約 55 箇所あっても、実際に壊れるのはその経路で動く file (session-start / session-end と source 先 lib) だけだった (2026-07-23、hook-errors.log 70 件の真因)。修正は (1) hook-errors.log でエラーが記録された file を特定 (2) その file の source 依存を grep (3) その範囲だけ修正する、の順で実行範囲に限定する。「同 pattern の全置換」は churn が大きい。
+
 ## 7. launchctl kickstart の連発は throttle で silent drop する
 
 launchd agent の手動発火 (`launchctl kickstart -k gui/$UID/<label>`) を複数 label へ連続実行すると、throttle により一部が spawn されず silent drop する (2026-07-23 実測: 4 本連発で runs 数が 1 本も増えなかった)。kickstart は即時実行の保証がなく、exit 0 で返るため失敗が見えない。

@@ -6,6 +6,8 @@
 
 Resource coverage map for the four primary commands (`/dev` `/plan` `/review` `/flow`).
 
+この表は上の 4 本だけを対象とする。大きい開発の spec 系 4 本 (`/spec-design` / `/spec-plan` / `/spec-detail` / `/spec-dev`) は対象外で、このうち `/spec-plan` と `/spec-detail` と `/spec-dev` は repo 規範を `scripts/resolve-repo-rules.sh` で対象 file から取得する方式を採る。`/spec-dev` の実体は `/dev --plan` なので、実装時の resource は上の `/dev` の行と同じになる。3 track の判定は `references/design-phase-flow.md` 「Route selection (3 track)」が canonical となる。
+
 | Resource type | Auto-fired | Notes |
 |---------------|-----------|-------|
 | **rule** | Auto-applied at launch | Loaded from `~/.claude/CLAUDE.md`, `~/.claude/rules/*.md`, `claude-code/CLAUDE.global.md`. Project `.claude/rules/*.md` added if present. No explicit invoke. |
@@ -122,5 +124,5 @@ wc -l claude-code/skills/load-guidelines/SKILL.md
 
 ## Related References
 
-- `references/design-phase-flow.md` - Design phase transitions (brainstorm→prd→design-doc→plan)
+- `references/design-phase-flow.md` - Design phase transitions (規模で分かれる 3 track の選択)
 - `references/natural-language-triggers.md` - Full natural language trigger list

@@ -21,7 +21,7 @@ Claude Code を毎日の開発で使うための設定一式をまとめてい�
   - chat 応答と file 書き込みの両方に NG 語の辞書を当てて block する
   - 辞書は `guidelines/writing/NG-DICTIONARY.md`、規範は `guidelines/writing/PRINCIPLES.md`
 - **計画から実装までを command で段階分けする**
-  - 要件は `/prd`、仕様は `/design-doc`、PR 分割は `/spec-plan` が担当する
+  - 要件は `/prd`、仕様は `/spec-design`、PR 分割は `/spec-plan` が担当する
   - 実装は `/spec-dev`、差分の理解は `/explain` を使う
   - 定義は `commands/` にある
 - **段ごとに機械判定の script を置く**
@@ -43,12 +43,12 @@ Claude Code を毎日の開発で使うための設定一式をまとめてい�
 
 ## 使い方の例
 
-ある日の流れを示す。
+ある日の流れを示す。下の図は変更の規模で分かれる 3 つの道順のうち、大きい開発 (複数 service や DB が変わる変更) の道順だ。1 file の修正なら `/dev` だけ、単一 service 内の機能追加なら `/prd` → `/plan` → `/dev` の短い道順になる。3 つの判定は `references/design-phase-flow.md` にある。
 
 ```mermaid
 flowchart TD
   P["/prepare<br>全体像の整理"] --> PRD["/prd<br>要件"]
-  PRD --> DD["/design-doc<br>仕様"]
+  PRD --> DD["/spec-design<br>仕様"]
   DD --> SP["/spec-plan<br>Phase 分割"]
   SP --> SD["/spec-dev<br>実装"]
   SD --> EX["/explain<br>差分の説明"]
@@ -62,7 +62,7 @@ flowchart TD
 1. **要件を固める**
    - issue を読んで `/prepare` で全体像を chat に整理する
    - `/prd` で要件を記述する
-2. **仕様書を作成する** (`/design-doc`)
+2. **仕様書を作成する** (`/spec-design`)
    - 受け入れ条件を先に表にする
    - `scripts/dd-gate.sh` で合計行と表の一致を機械判定する
 3. **Phase (= PR) に分ける** (`/spec-plan`)
@@ -117,7 +117,7 @@ flowchart LR
 
 | dir              | 役割                                                                                 |
 | ---------------- | ------------------------------------------------------------------------------------ |
-| `commands/`      | slash command の定義 (`/plan` / `/dev` / `/review` / `/design-doc` など)             |
+| `commands/`      | slash command の定義 (`/plan` / `/dev` / `/review` / `/spec-design` など)             |
 | `skills/`        | 特定の作業手順を定義した skill (`writing-knowledge` / `local-docs` / `git-push` など) |
 | `agents/`        | explore / developer / reviewer などの agent 定義                                      |
 | `hooks/`         | PreToolUse / Stop などの hook script と、その lib                                     |

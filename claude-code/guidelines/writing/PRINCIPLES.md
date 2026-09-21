@@ -89,7 +89,7 @@ chat 応答と外向き text では、日本語に訳しても指す対象が曖
 
 - chat 応答 (対話、思考過程、提案、報告)
 - 外向き text (PR / commit / Issue / Slack / Notion / DD / PRD / RCA / comments)
-- 考案フェーズ (`/plan` `/brainstorm` `/design-doc` 等) の本文ドラフト
+- 考案フェーズ (`/plan` `/brainstorm` `/spec-design` 等) の本文ドラフト
 
 CLAUDE.md / rules / config file の圧縮文体 (体言止め・英語の混在) は AI 向け設定記法であり、chat / 外向き出力の文体手本にしない。
 

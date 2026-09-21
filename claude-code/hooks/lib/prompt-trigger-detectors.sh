@@ -17,7 +17,7 @@ readonly _OUTWARD_SHARE_TRIGGERS=(
 readonly _OUTWARD_EXTRA_TRIGGERS=(
   "プルリク" "commit" "コミット" "push" "issue" "slack" "notion"
   "design doc" "デザインドック" "設計書" "prd" "rca" "障害報告" "ポストモーテム" "postmortem"
-  "/git-push" "/commit" "/post-comment" "/design-doc" "/prd" "/docs"
+  "/git-push" "/commit" "/post-comment" "/spec-design" "/prd" "/docs"
   "ドラフト" "下書き"
 )
 

@@ -61,12 +61,24 @@ Only high-frequency patterns are interpreted from natural language. For others, 
 | "review して直して push" | `/review --push` (`/review` → 全 fix → 再 review → `/git-push --pr`) |
 | "memory に保存", "覚えて" | `/memory-save <topic>` (session 知見を `<repo-root>/memory/` に恒久化) |
 | "local-docs に書いて", "runbook 作って", "さくっと doc" | `/local-docs` = `/ld` (新規は quick が既定。`_index/new-doc.mjs` で起こし、規範 Read と Polish は `--full` 時のみ。update は skill 側) |
-| repo 側 `/spec:design` / `/spec:plan` / `/spec:execute` (repo 側の正この rule dir) で設計書 / 計画書 / 実装を求められた | `/design-doc` / `/spec-plan` / `/spec-dev` へ誘導する (repo 側の出力先 `.claude/docs/` は write 禁止で成果物を保持できない。08-28 〜 09-03 の 32 回発火で file 0 件を実測)。`/spec:review` `/spec:quality` は相談用途としてそのまま使う |
+| repo 側 `/spec:design` / `/spec:plan` / `/spec:execute` (repo 側の正この rule dir) で設計書 / 計画書 / 実装を求められた | `/spec-design` / `/spec-plan` / `/spec-dev` へ誘導する (repo 側の出力先 `.claude/docs/` は write 禁止で成果物を保持できない。08-28 〜 09-03 の 32 回発火で file 0 件を実測)。`/spec:review` `/spec:quality` は相談用途としてそのまま使う |
 | "Phase n 実装して", "計画書の次の Phase やって", "SPEC 通りに実装" | `/spec-dev <作業計画書 path> --phase <n>` (Phase 1 つを実装し、完了報告で `/explain` を Next に出す) |
 | "作業計画書作って", "SPEC に分けて", "PR 構成決めて" | `/spec-plan <Design Doc path>` (Phase = PR の作業計画書。repo template があれば節構成を合わせる) |
-| "design doc 書いて", "DD 起こして" | `/design-doc <feature>` (12-section 設計 md を team 共有用に起草) |
-| "全体像把握して", "issue 読んで整理して", "タスク理解して" | `/prepare <issue URL / PRD path>` (出典を集めて要求 `R-n` / 現状 / 未確定点を整理、read-only。出口は `/prd` か `/design-doc`) |
+| "design doc 書いて", "DD 起こして" | `/spec-design <feature>` (12-section 設計 md を team 共有用に起草) |
+| "全体像把握して", "issue 読んで整理して", "タスク理解して" | `/prepare <issue URL / PRD path>` (出典を集めて要求 `R-n` / 現状 / 未確定点を整理、read-only。出口は `/prd` か `/spec-design`) |
 | "PRD 書いて", "要件整理して" | `/prd <feature>` (PRD 起草) |
+
+## 規模による入口 (3 track)
+
+上の表は command 名を含む発話を command へ対応づけるもので、規模の判定を経ない。command 名を含まない依頼 (「この bug 直して」「〜機能を追加して」) では、変更の規模で入口が変わる。
+
+| Track | 入口 |
+|---|---|
+| 極小 | `/dev` |
+| 小さい開発 | `/prd` → `/plan` → `/dev` or `/flow` |
+| 大きい開発 | `/prd` → `/spec-design` → `/spec-plan` → `/spec-detail` → `/spec-dev` → `/explain` |
+
+判定と track ごとの成果物は `design-phase-flow.md` 「Route selection (3 track)」が canonical となる。上の表のうち `/spec-design` / `/spec-plan` / `/spec-detail` / `/spec-dev` の行は、大きい開発の track にだけ当たる。
 
 ## Not interpreted
 

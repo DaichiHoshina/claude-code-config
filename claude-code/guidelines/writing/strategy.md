@@ -1,6 +1,6 @@
 # ドキュメント戦略 (種別・保存先・体系)
 
-ドキュメント種別の役割分担・関係性・保存先・体系原則。`/design-doc` / `/prd` 等の保存先判断時に参照する。
+ドキュメント種別の役割分担・関係性・保存先・体系原則。`/spec-design` / `/prd` 等の保存先判断時に参照する。
 
 > **どう書くか** (執筆原則) は [PRINCIPLES.md](PRINCIPLES.md) / [long-form-doc.md](long-form-doc.md) / [design-doc-protocol.md](design-doc-protocol.md) 参照。
 

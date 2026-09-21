@@ -1,6 +1,6 @@
 # Decision Quality Checklist
 
-Auto-applied by AI in `/prd` Phase 1.7 and `/design-doc` Step 4/6. **Unmet items = Critical → draft returned for revision.**
+Auto-applied by AI in `/prd` Phase 1.7 and `/spec-design` Step 4/6. **Unmet items = Critical → draft returned for revision.**
 
 ## Q1. Is this the real objective? (XY problem elimination)
 
@@ -42,7 +42,7 @@ Auto-applied by AI in `/prd` Phase 1.7 and `/design-doc` Step 4/6. **Unmet items
 | Command | Where applied | On violation |
 |---------|--------------|--------------|
 | `/prd` | Phase 1.7 (before draft generation) | Supplement with AskUserQuestion |
-| `/design-doc` | Step 4 (required sections) + Step 6 (quality guard) | Rewrite with Edit, max 2 loops |
+| `/spec-design` | Step 4 (required sections) + Step 6 (quality guard) | Rewrite with Edit, max 2 loops |
 
 ## NG Patterns (Critical judgment)
 

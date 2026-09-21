@@ -8,7 +8,7 @@ argument-hint: "[topic]"
 
 Organize complex requirements and detect gaps from multiple expert perspectives.
 
-> Full flow (prepare → brainstorm → prd → design-doc → plan → dev → docs): `references/design-phase-flow.md`
+> Full flow (3 track): 小さい開発は `/prd` → `/plan` → `/dev` or `/flow`、大きい開発は `/prd` → `/spec-design` → `/spec-plan` → `/spec-detail` → `/spec-dev` → `/explain`。track の判定: `references/design-phase-flow.md`
 
 ## Input Parsing (auto-branch from ARGUMENTS)
 
@@ -87,7 +87,7 @@ AskUserQuestion 回答が "unclear"/"pending" → draft Open Questions へ移動
 
 ### Phase 5: Fix & Approve
 
-AskUserQuestion → fix or approve → `/design-doc` (team-shared design) or `/plan` or `/dev`
+AskUserQuestion → fix or approve → `/spec-design` (team-shared design) or `/plan` or `/dev`
 
 ## Output Template
 
@@ -100,7 +100,7 @@ AskUserQuestion → fix or approve → `/design-doc` (team-shared design) or `/p
 ## 4. Functional Req (state transitions/business rules)
 ## 4.5 Formalization (complex cases only)
 ## 5. Non-functional Req
-## 6. Acceptance Criteria  (AC-1, AC-2 ... の ID を振る。「〜のとき、〜が〜になる」の判定できる文。`/design-doc --prd` は AC-n を振り直さず PRD の番号で参照する)
+## 6. Acceptance Criteria  (**条件に `AC-1` のような ID を振らない**。「〜のとき、〜が〜になる」の判定できる文にし、後段からは条件の文を backtick で引用して指す)
 ## 7. Review Result
 ## 8. Next Steps
 ```

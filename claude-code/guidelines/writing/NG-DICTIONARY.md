@@ -132,7 +132,7 @@ hit した語が**地の文か、識別子か、上流 doc からの逐語引用
 2. **識別子の hit**: 技術用語 / command 名 / 固有名詞は backtick で囲む。`_strip_code_blocks` が ` `code` ` / ` ```block``` ` を除去するため hook をすり抜ける。commit message / PR / Slack / Notion / DD / RCA すべて適用。囲ってよいのは、その語が識別子として画面や command に現れる場合だけにする。
    - 例: `leverage を使う` → ✗ block / `` `leverage` ライブラリを使う `` → ○ pass
 3. **上流 doc からの逐語引用**: Design Doc の受け入れ条件のように、上流 doc の文言を一字一句そのまま転記する箇所は backtick で囲む。引用の語の責任は上流の書き手にあるので、辞書に合わせて言い換えると引用でなくなり、読み手が上流 doc と照合できなくなる。囲ってよいのは上流に同じ文が実在して完全に一致する場合だけにし、要約・省略した箇所は書き手の文なので 1 に従う。上流 doc の側に NG 語が入っているなら、上流を書き直して引用を取り直す
-   - 例: SPEC の完了条件が Design Doc の AC を指す → ✗ 言い換えた `` AC-1「取得が存在しない」`` / ○ 原文のまま `` AC-1 `取得が残っていない` ``
+   - 例: SPEC の完了条件が Design Doc の受け入れ条件を指す → ✗ 言い換えた `取得が存在しない` / ○ 原文のまま `` `取得が残っていない` `` (条件に `AC-1` のような ID を付けない。`design-doc-protocol.md` 「逆算の 4 原則」)
 4. **whitelist 追加 (incident base 限定)**: 1, 2 で吸収できず**かつ同じ語で 3 回以上 false positive 実害**が発生した時のみ、本 file に whitelist section を新設して exact match 除外する。先回り whitelist 化禁止 (hook 機能後退の温床)。
 
 ### canonical 運用

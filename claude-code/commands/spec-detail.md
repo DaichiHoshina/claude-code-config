@@ -10,7 +10,7 @@ argument-hint: "<作業計画書 path> [--phase <n>] [--out <path>]"
 >
 > **語の対応**: ここで SPEC と呼ぶのは作業計画書 (Phase = PR) を指す。一般にいう Spec (誰がどの状況で何を達成するかと、受け入れ条件) は Design Doc に記載する。
 
-**Position**: `/design-doc` (仕様) → `/spec-plan` (Phase = PR 分割) → **`/spec-detail`** (Phase n の実装方法) → `/spec-dev` (Phase n 実装) → `/explain`
+**Position**: `/spec-design` (仕様) → `/spec-plan` (Phase = PR 分割) → **`/spec-detail`** (Phase n の実装方法) → `/spec-dev` (Phase n 実装) → `/explain`
 
 ## なぜ SPEC と分けるか
 
@@ -66,11 +66,13 @@ Phase の責務が **現在どこでどう実現されているか**を実物で
 - 変更時に注意が必要な箇所を確認する。JOIN 経由の参照、COUNT クエリ、cache、batch、非同期の処理、監査ログ、ORM の table 登録が対象になる
 - SPEC と実物の食い違い
 
+**SPEC / Design Doc が名指しする既存の担保 (ロック / TX 境界 / 一意制約 / 状態遷移) は、その担保を取ると書かれた処理の入口から呼び出し順に確認して特定する**。`grep "FOR UPDATE"` の hit や file 名の一致で特定しない。同じ語を含む file が複数あると、別機能の担保を根拠にしたまま「記述と実物が食い違う」と判定することになる (2026-09-20 実踏: 発送依頼の担保を調べる場面で抽選の user 単位ロックを根拠にし、成立しない未決を 1 件記載した)。確認した経路は `<入口の file:line> から <担保の file:line>` の形で 1 行記載する。
+
 集めた事実は成果物の独立節にしない。実装の判断を変えるものだけを Step 3 の該当項目の下位 bullet に書く。schema の列挙、memory の path、呼び出し件数は、判断を変えないなら書かない。
 
 **調査は AI が行ってよいが、結果の責任は実装担当者が負う**。返した method 一覧と件数は、採用する前に user が確認する前提で記載する。「AI が調べたから正しい」とはしない。
 
-食い違いの扱いは `/spec-plan` Step 2 の判定表に従う。endpoint / field / flag / table / 画面の不足や形の違いは `/design-doc --update` へ戻す。Phase の切り方が変わる規模の食い違い (参照が 10 file を超える等) は `/spec-plan --update` へ戻す。実装経路の詳細だけの違いはこの file に記載して進む。
+食い違いの扱いは `/spec-plan` Step 2 の判定表に従う。endpoint / field / flag / table / 画面の不足や形の違いは `/spec-design --update` へ戻す。Phase の切り方が変わる規模の食い違い (参照が 10 file を超える等) は `/spec-plan --update` へ戻す。実装経路の詳細だけの違いはこの file に記載して進む。
 
 ## Step 3: 実装方法を決める
 
@@ -98,7 +100,7 @@ Step 2 の事実を踏まえ、**記載する価値のある項目だけ**を記
 
 ## 既存 detail file の rewrite (再発火 / 見た目の改善依頼)
 
-同じ Phase について `/spec-detail` が再発火する場面がある。command 更新後の再実行、または「図を足したい」「AC 表記でなく平文にしたい」等の見た目の改善依頼が典型で、実装済みか未実装かにかかわらず起こる。
+同じ Phase について `/spec-detail` が再発火する場面がある。command 更新後の再実行、または「図を追加したい」「表でなく平文にしたい」等の見た目の改善依頼が典型で、実装済みか未実装かにかかわらず起こる。
 
 - 出力 file が既に存在するときは、上書き前に既存 file を Read し、記載済みの調査結果と判断を残すか捨てるかを判定する。実装済み Phase の rewrite で調査結果を捨てると、着手時に既に決まった判断を書き直すことになる
 - rewrite の主目的が「読み手が理解しやすい形にする」なら、実装判断の中身は保ちつつ、順序 / 図 / 見出しだけを差し替える。Code Investigation の独立節は残さない。判断そのものを書き直すなら、既存判断を書き換える理由を冒頭に 1 行残す
@@ -118,13 +120,15 @@ Step 2 の事実を踏まえ、**記載する価値のある項目だけ**を記
 - 実装しない。code を編集しない
 - SPEC と Design Doc を編集しない。不足があれば `--update` の経路へ戻す
 - 他 Phase の実装方法を先に決めない (1 回 1 Phase)
+- **SPEC が決めた件数 (参照箇所の数、削除するログの本数、対象 file の数) を詳細設計へ複製しない**。必要なときは SPEC の節名で参照し、実装の判断に数が必要なら実物を数え直して、数えた対象を 1 行記載する。複製した数は SPEC の更新を反映せず、既存 PR の実装とも食い違う (2026-09-20 実踏: SPEC と実装がどちらも 2 本としたログを 3 本と記載し、その削除場所も別 file にした)
 - Step 2 の調査結果を「AI が確認済み」として扱わない。user の確認を前提に記載する
+- 「未決」として記載するのは、入口からの呼び出し経路を 1 本確認しても決まらなかった項目だけにする。SPEC / Design Doc の記述と実物が食い違うと判定したときは、記載する前に、根拠にした箇所が対象の経路の内側にあるかを確認する
 - 省略判定に当たる Phase で file を作らない
 
 ## Related
 
 - `commands/spec-plan.md` — 入力の作業計画書を作成する。Phase は責務までで、実装形は保持しない
 - `commands/spec-dev.md` — この file を入力に実装する
-- `commands/design-doc.md` 「完了判定」 #11 — 関数名 / SQL / file 名を Design Doc に置かない判定。行き先はこの command
-- `references/design-phase-flow.md` — 遷移全体
+- `commands/spec-design.md` 「完了判定」 #11 — 関数名 / SQL / file 名を Design Doc に置かない判定。行き先はこの command
+- `references/design-phase-flow.md` — 遷移全体と 3 track の判定 (この command は大きい開発でだけ使う)
 - `references/on-demand-rules/spec-flow-episodes.md` — spec 系の実踏エピソード

@@ -160,7 +160,9 @@ Apply relevant items only. Scale by change size (typo → #6 / new feature → a
 
 ## Verification before completion (evidence before claims)
 
-「完了」「動く」「passing」等の success 宣言前に、検証 command を fresh に実行して出力と主張を照合する (canonical: `superpowers:verification-before-completion` skill)。**発火 trigger**: (a) commit / push / PR 作成前 (b)「実装した / 動くはず」と記述する前 (c) subagent の success 報告を採用する前。skip した場合は「未検証」と明示する。
+「完了」「動く」「passing」等の success 宣言前に、検証 command を fresh に実行して出力と主張を照合する (canonical: `superpowers:verification-before-completion` skill)。**発火 trigger**: (a) commit / push / PR 作成前 (b)「実装した / 動くはず」と記述する前 (c) subagent の success 報告を採用する前 (d) repo / 既存資産の評価を報告する前。skip した場合は「未検証」と明示する。
+
+**repo 全体の評価では、読み取りに加えて CI と同じ command で依存導入と build と test を 1 回走らせる**。`npm ci` を `npm install` で代替しない (lockfile 不整合を検出できない)。読むだけでは `.gitignore` の 1 行による build 破損、lockfile 不整合、`.env.example` の除外を指摘できず、評価の後で修正に入って初めて 3 件とも出た (2026-09-21 実踏)。時間がかかるものは `run_in_background` で並行させる。走らせられないときは評価に「未実行」と明記する。
 
 **変更した対象の名前で `tests/` を grep して、hit した test file を全部実行する**。関数を変えたら関数名で、doc や設定 file を編集したら file 名で探す。変更 file 直下の test だけ実行して green と判定すると、旧挙動を assert する別 file の fail を見落とす (3 回実踏)。doc にも contract test が張られていることがあり、file 名の逆引きを省いて規範へ字数指標を書き戻し、test を壊したまま push した (2026-09-01 実踏)。full suite が重い repo では、この逆引き 1 手で代替する。
 

@@ -78,7 +78,7 @@ Diátaxis の how-to に当たる手順書は、作業中の読み手が途中�
 
 ## 品質検証タイミング
 
-各 command の self-check 発動タイミングと loop 上限は `references/writing-check-protocol.md` を canonical とする (`/design-doc` Step 8.5 / `/prd` Phase 4.5 / `/post-comment` Step 2.5 / `/git-push` Step 2・5.5 / `/retrospective` `/diagnose` 長文出力前)。draft 前の構造ゲートはこの file「構造ゲート適用」と `PRINCIPLES.md`「文書全体の読みやすさ」を参照する。
+各 command の self-check 発動タイミングと loop 上限は `references/writing-check-protocol.md` を canonical とする (`/spec-design` Step 8.5 / `/prd` Phase 4.5 / `/post-comment` Step 2.5 / `/git-push` Step 2・5.5 / `/retrospective` `/diagnose` 長文出力前)。draft 前の構造ゲートはこの file「構造ゲート適用」と `PRINCIPLES.md`「文書全体の読みやすさ」を参照する。
 
 **Web 出力 (Notion / GitHub / Confluence) 時は追加チェック 4 項目**: 長文の分割 / 内容を示す heading / 1 段落 1 主張 / 必要な箇所の強調 — 詳細 `PRINCIPLES.md` `## Web 可読性`。
 
@@ -426,7 +426,7 @@ KPTは課題明示が必須、YWTは継続学習の記録に特化。週次や�
 
 | コマンド | 適用 |
 |---------|------|
-| `/design-doc` | Step 3.5 structure gate と骨子 → draft → Step 7.5 writing-check-protocol。書き出し前4問、draft完成後 [DDセルフチェック18](design-doc-protocol.md) |
+| `/spec-design` | Step 3.5 structure gate と骨子 → draft → Step 7.5 writing-check-protocol。書き出し前4問、draft完成後 [DDセルフチェック18](design-doc-protocol.md) |
 | `/prd` | Phase 1.9 structure gate → Phase 2 draft → Phase 4.5 writing-check-protocol。MoSCoWテンプレ使用 |
 | `/git-push --pr` | PR 本文は [pr-description.md](pr-description.md) canonical。writing-check-protocol (Step 2 / 5.5)。この doc の 4 問は draft 起点として併用 |
 | `/diagnose` 長文 / `/retrospective` | 出力前に structure gate を含む writing-check-protocol。箇条書きだけで終わらせない |

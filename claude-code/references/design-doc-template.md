@@ -1,6 +1,6 @@
 # Design Doc Template
 
-12-section full template used by `/design-doc --type full`. The default is the spec-type template (`design-doc-spec-template.md`).
+12-section full template used by `/spec-design --type full`. The default is the spec-type template (`design-doc-spec-template.md`).
 
 ## 12-section structure
 
@@ -26,7 +26,7 @@
 ### 3.2 Acceptance criteria mapping
 | Acceptance criterion (Spec) | Design response | Verification |
 | --- | --- | --- |
-| AC-001: [expected behavior] | [screen / API / data] | [pointer into 11.1] |
+| [expected behavior, quoted from the Spec] | [screen / API / data] | [pointer into 11.1] |
 - Do not restate the Spec here. Map each criterion to the design that satisfies it
 - The Verification column is an index only; the actual plan lives in 11.1
 

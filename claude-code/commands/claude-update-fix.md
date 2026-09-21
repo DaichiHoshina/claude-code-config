@@ -20,7 +20,7 @@ Run: `claude --version` (local CLI) / `npm view @anthropic-ai/claude-code dist-t
 | `claude --version` == `dist-tags.latest` | `latest` | `latest` tag version |
 | neither matches (mid-version / manually pinned) | `latest` (current default) | `latest` tag version |
 
-Repo runs on the **stable** channel; fetch scope and bump target align to stable tag.
+cron 実行 (`claude -p`) では CHANNEL を `latest`、TARGET を `dist-tags.latest` に固定する。実機と過去の run はどちらも latest 版を使っており、stable 判定にすると VERSION が TARGET より新しくなって毎週停止したため。上表の stable 行は、対話実行で stable を明示されたときだけ使う。
 
 **Decision**:
 - `VERSION > TARGET` → no-op exit; display `> [WARN] VERSION (X) > TARGET (Y): fetch range backward — skip. Confirm manually aligning VERSION to TARGET.`

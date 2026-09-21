@@ -213,6 +213,29 @@ block 系 guard の error message に記載する「代わりにここへ」の 
 
 `~/.claude/settings.json` の `env` は Claude Code の Bash tool の子 process に継承される。`JP_QUALITY_STYLE_ENFORCEMENT=1` を既定にした (2026-09-11) 後、「既定では block しない」を確かめる `tests/unit/hooks/notion-checkers.bats` が Bash tool 経由でだけ失敗した。terminal から直接実行すると成功するため、hook の regression に見える。対処は `run env -u JP_QUALITY_STYLE_ENFORCEMENT bash -c '...'` で変数を外し、code 側の既定値 (未設定 = 0) を確かめる形にする。settings の env に hook の切替変数を追加したときは `grep -rn "<VAR>" tests` で既定値に依存する test を探す。
 
+## 注意点 21: hook の修正は再起動なしで反映される (settings.json の登録だけ例外)
+
+`hooks/*.sh` と `hooks/lib/*.sh` の修正は、sync 後の次の tool call から既存 session にも反映される。hook は毎回別 process として動き、lib も毎回 source されるので、既存 session でも最新の内容が実行される。command / skill / agent の定義 file も、追加・削除・rename が同じ session に反映される (2026-09-05 実測)。
+
+- 再起動を案内するのは、settings.json の hook 登録を変えたときだけにする
+- 「再起動後に反映される」と報告する前に、sync 後に同じ操作を再実行して確かめる (sync.sh の古い案内文を根拠に誤報告した実例がある)
+
+## 注意点 22: hook の出力は「user 向け」と「model 向け」を区別する
+
+`systemMessage` は user の画面に表示されるだけで、model の context に入らない。model へ渡す経路は `hookSpecificOutput.additionalContext` か plain-text stdout の 2 つ。hook から skill を自動起動する API は無く、skill 名を表示しても model は読まない。
+
+- 規範を model に適用させたいなら、`additionalContext` に「どの file を Read するか」の 1 行を記載する。本文の複製は不要
+- hook 出力の test は「期待する文字列が context に入ること」を検査する。長さ 0 を正として固定すると、壊れた状態が凍る (2026-08-17 に実踏)
+- 注意点 5 の warn が AI に届かない件も、同じ原因
+
+## 注意点 23: block の処理を変えたら、実際の JSON を hook に渡して出力まで確かめる
+
+bats と lint の通過だけで終えない。`sync.sh to-local` の後に `jq -n '{tool_name:..., tool_input:{...}}' | bash ~/.claude/hooks/pre-tool-use.sh` で実物を渡し、block の message 本文が出力されることを確認する。
+
+- 確認する経路は 3 つ: file への Write (md と code の comment)、commit message を含む Bash、chat 応答を検査する `stop.sh`
+- 拒否されないはずの入力 (言い換え後の日本語) も 1 件渡し、誤検出が無いことまで見る
+- 実例 (2026-09-14): lib の関数を直接呼ぶと正常なのに、hook 経由では `set -e` で停止して出力が 0 文字になった。fail-close のため exit 0 で終わり、log にも記録が作られない
+
 ## 関連
 
 - `measure-before-hook-change.md` — hook 編集前の latency baseline 計測

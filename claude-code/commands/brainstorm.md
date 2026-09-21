@@ -17,7 +17,7 @@ argument-hint: "[topic]"
 | `/plan` | design settled, create impl plan |
 | `/dev` | design+plan done, implement now |
 
-> Full flow (brainstorm → prd → design-doc → plan → dev → docs): `references/design-phase-flow.md`
+> Full flow (3 track): `/brainstorm` の後は、小さい開発が `/prd` → `/plan` → `/dev` or `/flow`、大きい開発が `/prd` → `/spec-design` → `/spec-plan` → `/spec-detail` → `/spec-dev` → `/explain`。track の判定: `references/design-phase-flow.md`
 
 ## Flow
 

@@ -28,6 +28,9 @@ fi
 # 最長 command に対して約 2 倍の余裕を確保する。値は CMD_MAX_SECONDS で上書きできる
 CMD_MAX_SECONDS="${CMD_MAX_SECONDS:-900}"
 TIMEOUT_BIN="$(command -v timeout || command -v gtimeout || true)"
+# API に接続できず失敗した command は待って再試行する (2026-09-14 に 4 job 全部が失敗した実踏)。env で上書きできる
+NET_RETRY_MAX="${NET_RETRY_MAX:-3}"
+NET_RETRY_WAIT="${NET_RETRY_WAIT:-300}"
 
 notify() {
   local text="$1" url=""
@@ -54,12 +57,27 @@ cd "$REPO_ROOT"
 FAILED_COMMANDS=()
 for cmd in "${MAINTENANCE_COMMANDS[@]}"; do
   printf '=== %s (%s) ===\n' "$cmd" "$(date '+%F %T')" >> "$log_file"
-  rc=0
-  if [[ -n "$TIMEOUT_BIN" ]]; then
-    "$TIMEOUT_BIN" "$CMD_MAX_SECONDS" "$CLAUDE_BIN" -p "$cmd" --fallback-model sonnet >> "$log_file" 2>&1 || rc=$?
-  else
-    "$CLAUDE_BIN" -p "$cmd" --fallback-model sonnet >> "$log_file" 2>&1 || rc=$?
-  fi
+  attempt=0
+  while :; do
+    rc=0
+    out_file="$(mktemp)"
+    if [[ -n "$TIMEOUT_BIN" ]]; then
+      "$TIMEOUT_BIN" "$CMD_MAX_SECONDS" "$CLAUDE_BIN" -p "$cmd" --fallback-model sonnet > "$out_file" 2>&1 || rc=$?
+    else
+      "$CLAUDE_BIN" -p "$cmd" --fallback-model sonnet > "$out_file" 2>&1 || rc=$?
+    fi
+    cat "$out_file" >> "$log_file"
+    # スリープ復帰直後の DNS 不通は待てば直るので、その失敗だけ再試行する
+    if [[ "$rc" -ne 0 && "$attempt" -lt "$NET_RETRY_MAX" ]] && grep -q -E "ENOTFOUND|Can't reach the API" "$out_file"; then
+      attempt=$((attempt + 1))
+      rm -f "$out_file"
+      printf 'WARN: %s は API に接続できず失敗した。%s 秒待って再試行する (%s/%s)\n' "$cmd" "$NET_RETRY_WAIT" "$attempt" "$NET_RETRY_MAX" >> "$log_file"
+      sleep "$NET_RETRY_WAIT"
+      continue
+    fi
+    rm -f "$out_file"
+    break
+  done
   if [[ "$rc" -ne 0 ]]; then
     if [[ "$rc" -eq 124 ]]; then
       printf 'WARN: %s が %s 秒で timeout した\n' "$cmd" "$CMD_MAX_SECONDS" >> "$log_file"

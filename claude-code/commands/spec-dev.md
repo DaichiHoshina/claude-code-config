@@ -10,7 +10,7 @@ argument-hint: "<作業計画書 path> [--phase <n>]"
 >
 > **語の対応**: ここで SPEC と呼ぶのは作業計画書 (Phase = PR) を指す。一般にいう Spec (誰がどの状況で何を達成するかと、受け入れ条件) は Design Doc に記載する。
 
-**Position**: `/design-doc` (仕様) → `/spec-plan` (Phase = PR 分割) → `/spec-detail` (Phase n の実装方法) → **`/spec-dev`** (Phase 実装) → `/explain` (差分理解) → PR → 次 Phase
+**Position**: `/spec-design` (仕様) → `/spec-plan` (Phase = PR 分割) → `/spec-detail` (Phase n の実装方法) → **`/spec-dev`** (Phase 実装) → `/explain` (差分理解) → PR → 次 Phase
 
 ## When to use (棲み分け)
 
@@ -27,7 +27,16 @@ argument-hint: "<作業計画書 path> [--phase <n>]"
 ## Step 1: 入力
 
 1. 引数の path を作業計画書として Read する。無ければ同 session で `/spec-plan` が最後に出した path を使う。それも無ければ `~/.claude/plans/` と、repo の 1 つ上の dir にある `plans/<issue 番号>/` および `docs/plans/` から、末尾に `/spec-dev` の前提行が書かれた最新 file を候補にして path を 1 行宣言し、候補が無いときだけ 1 問で path を聞く。`plans/` は issue 番号の dir が 1 段深いので `ls -t <parent>/plans/*/*.md` で 1 段下まで探索し、そこに `grep -l "/spec-dev"` を組み合わせる。worktree では元 repo の 1 つ上の dir を基準にする
-2. `--phase` 省略時は、計画書の Phase 見出しのうち完了報告がまだ無い最初の Phase を採用し、採用した Phase 名を 1 行宣言する
+2. `--phase` 省略時は、計画書の Phase 見出しのうち完了報告がまだ無い最初の Phase を採用する。採用したら、着手前に現在地を 4 行で宣言する (実装中に「今どこか」を記憶に保持しなくて済む状態を作る)。N は計画書の PR 見出しを数えて求め、数えられない計画書では `/ 全 N` を省いて `Phase 2` だけを記載する
+
+   ```
+   Phase 2 / 4
+   前: Phase 1 Schema
+   NOW: Phase 2 Command
+   次: Phase 3 Usecase
+   ```
+
+   前後が無い Phase の行は `前: なし` / `次: なし` とする。この 4 行は着手時と Step 4 の完了報告の 2 回だけ記載し、turn ごとには記載しない (同じ 4 行が実装中の出力に何度も現れると読みにくくなる)。済んだ Phase の印 (`✓` 等) は付けない。完了した Phase を判定する情報源が無いため、示すのは位置だけとする
 2.5. Phase の詳細設計 (`/spec-detail` が作成した `<SPEC の basename>-phase<n>.md`) を SPEC と同じ dir で探し、あれば Read して実装形 (interface / method / 契約 / SQL 方針 / TX / テスト観点 / 変更対象 file) をそのまま採用する。冒頭に「無効」と記載された詳細設計は、`/spec-plan --update` が SPEC を更新した後の古い契約なので、file が無いときと同じに扱う。無いときは `/spec-detail` Step 0 の省略判定をこの Phase に当て直す。当たるなら SPEC の 対象 / 完了条件 から実装形を自分で決めてよい。**当たらないなら実装へ進まず**、詳細設計の path を渡すか `/spec-detail` を実行するよう 1 行報告して止める (`/spec-detail` が `--out` で別 dir へ出力した詳細設計は同 dir の検索では見つからない。見つからないことを省略判定と同じに扱うと、決めた実装形を無視して実装が進む)。詳細設計と実物が食い違ったら実装を進めず、食い違いを 1 行報告して `/spec-detail` へ戻す
 3. Phase の「実装への指針」に列挙された repo 規範 (rule file) を着手前に Read し、命名 / 型 / 層 / error / test の制約を採用する。列挙が無い計画書なら `~/.claude/scripts/resolve-repo-rules.sh <対象 file>...` で取得して同じ形で報告に記載する (exit 3 なら skip。詳細は `references/on-demand-rules/repo-rules-manifest.md`)。developer-agent へ委譲するときは、読んだ rule の **file 名一覧を絶対 path で prompt に記載する** (harness の auto-load は subagent に届かないため、渡さないと規範が適用されない)。Phase の 対象 / 対象外 / 完了条件 を scope として採用する。対象外に列挙された file には触らず、変更する必要が発生したら止まって報告する
 3.5. Phase の対象領域 (ディレクトリ名や table 名から取る。例: `oripa` / `payment` / `shipment`) を語にして memory index を grep し、hit した file を Read する。作業の計画書が `/spec-plan` Step 2.6 で file 名を列挙していればそれを Read し、列挙が無ければ `grep -niE '<領域語>' "$(bash ~/.claude/scripts/memory-save-helper.sh resolve-dir)/MEMORY.md"` で引き当てる (読む上限 3 file、`**地図**` と `**入口**` の行を優先)。既知の trade-off をここで確認しないと、判断済みの箇所を作り直す実装になる。developer-agent へ委譲するときは rule と同じく絶対 path を prompt に記載する
@@ -51,7 +60,7 @@ argument-hint: "<作業計画書 path> [--phase <n>]"
 - mutation check の fixture は、壊したい条件 (ORDER BY / WHERE の 1 句) が確実に偽になる data を先に決めて作る
 - 既存 field の型変更 (nullable 化 等) の更新は、`go vet` / `go build` の error 位置を起点にした script で機械的に直し、手で 1 か所ずつ直さない (2026-09-06 に 13 file 117 か所)
 - Phase ごとに worktree を切り替えるので、着手時に Serena の active project を新 worktree に切り替える (旧 worktree に bind されたままだと symbol 編集ができない)
-- 実装中に既存挙動を変える判断 (error 応答の形、共有 usecase 経由の別入口への制約) が必要になったら、その場で決めずに `/design-doc --update` で DD へ記載してから続ける。実装で決めた設計は、過去の振り返りで手戻りの主因になった
+- 実装中に既存挙動を変える判断 (error 応答の形、共有 usecase 経由の別入口への制約) が必要になったら、その場で決めずに `/spec-design --update` で DD へ記載してから続ける。実装で決めた設計は、過去の振り返りで手戻りの主因になった
 - 既存 test の FAIL が並列干渉 (単独実行で PASS) なら、test 名と単独実行の結果を報告に記載して無関係と判定し、「全部 green」とは書かない
 
 ## Step 3.5: self-review (完了報告の前)
@@ -74,7 +83,8 @@ diff は reviewer が 1 本で採否を決められる状態にする (`commands
 完了報告は次の 4 行で閉じる。
 
 ```
-Phase <n> <Phase 名>: 完了 / 一部完了 (残り: ...)
+Phase <n> / 全 <N> — <Phase 名>: 完了 / 一部完了 (残り: ...)   (N が数えられない計画書では「/ 全 N」を省く)
+現在地: 前 <前の Phase 名 または なし> / 次 <次の Phase 名 または なし>
 満たした条件: <条件の文の引用> / 残り: <同>   (計画書が担当条件を保持するときだけ)
 検証: <実行した command と結果 1 行>
 Next: /explain                              (この Phase の差分を理解してから PR と次 Phase へ)
@@ -104,4 +114,4 @@ Next: /explain                              (この Phase の差分を理解し�
 - `commands/spec-detail.md` — Phase の実装形を決める。この command の入力になる
 - `commands/dev.md` 「Plan intake」 — 実装手順の canonical
 - `commands/explain.md` — 完了後の差分説明
-- `references/design-phase-flow.md` — 遷移全体
+- `references/design-phase-flow.md` — 遷移全体と 3 track の判定 (この command は大きい開発でだけ使う)

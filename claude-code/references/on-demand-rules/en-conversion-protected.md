@@ -7,7 +7,7 @@
 - `guidelines/writing/PRINCIPLES.md` — 規約 file 自体が JP、EN 化で規約と矛盾
 - `commands/jp-fix.md` — JP writing 例示が規範 (frontmatter は EN OK、body のみ保護)
 - `commands/post-comment.md` — 同上
-- `commands/design-doc.md` — 同上
+- `commands/spec-design.md` — 同上
 - `commands/prd.md` — 同上
 - `guidelines/writing/*.md` (全 file、canonical: `ls guidelines/writing/*.md` で導出) — 執筆規約・NG 辞書・JP 文体規範
 - `rules/thinking-principles.md` — JP 文言が `tests/integration/thinking-principles-sync.bats` の anchor

@@ -11,7 +11,7 @@ Improve human-facing prose (PR body, Design Doc body, Notion, blog, Slack, email
 Code body, code comments, docstrings out of scope.
 
 > **Responsibility split**:
-> - `/design-doc` = assemble design decision document
+> - `/spec-design` = assemble design decision document
 > - `/jp-fix` = **prose quality itself** (vocab, sentence flow, paragraph coherence, signal)
 
 ## JP 執筆規範 (write/rewrite 時に必須適用)

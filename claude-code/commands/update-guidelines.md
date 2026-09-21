@@ -105,7 +105,7 @@ Warning: N / Info: N
 
 ## Out of Scope
 
-- new guideline creation (`/design-doc` or manual)
+- new guideline creation (`/spec-design` or manual)
 - rules/references/skills scan (guidelines only)
 - code body (`/dev` job)
 

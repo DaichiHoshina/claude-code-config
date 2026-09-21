@@ -1,6 +1,6 @@
 # AI を使った設計駆動開発フロー (Why)
 
-この file は spec 系 command が**なぜその境界で分かれているか**を説明する。各 command の手順は `commands/design-doc.md` / `commands/spec-plan.md` / `commands/spec-detail.md` / `commands/spec-dev.md` が canonical で、ここでは重複させない。遷移条件の一覧は `design-phase-flow.md` にある。
+この file は spec 系 command が**なぜその境界で分かれているか**を説明する。**対象は 3 track のうち大きい開発だけ**で、極小と小さい開発 (`/dev` だけ、または `/prd` → `/plan` → `/dev` or `/flow`) にはこの段階分けを適用しない。各 command の手順は `commands/spec-design.md` / `commands/spec-plan.md` / `commands/spec-detail.md` / `commands/spec-dev.md` が canonical で、ここでは重複させない。遷移条件の一覧は `design-phase-flow.md` にある。
 
 ## 中心にある前提
 
@@ -45,7 +45,7 @@ Code Investigation 「現在、この責務はどこでどう実装されてい�
 
 | 段階 | command | 成果物 |
 |---|---|---|
-| Design Doc | `/design-doc` | `docs/design/<slug>.md` |
+| Design Doc | `/spec-design` | `docs/design/<slug>.md` |
 | SPEC | `/spec-plan` | 作業計画書 `plans/<issue 番号>/*.md` |
 | Code Investigation | `/spec-detail` Step 2 | 調査は内部。独立節は成果物に置かない |
 | 詳細設計 | `/spec-detail` Step 3 | `<SPEC 名>-phase<n>.md` |
@@ -59,7 +59,7 @@ Code Investigation と詳細設計は 1 つの command に入っているが、S
 
 実装のなかで自然に決まる詳細を書き込むと、レビュー対象が大きくなり、本当に議論すべき設計判断に集中できなくなる。Design Doc の目的は実装前にチームが方向性で合意することにある。
 
-規模は Implementation Surface の表に endpoint 名・画面名・table 名を列挙し、その**行数として結果的に現れる**。本文で規模そのものを論じない。この使い分けが「一覧は具体名、判断は抽象」という team の慣習にあたる (`commands/design-doc.md` 完了判定 #11)。
+規模は Implementation Surface の表に endpoint 名・画面名・table 名を列挙し、その**行数として結果的に現れる**。本文で規模そのものを論じない。この使い分けが「一覧は具体名、判断は抽象」という team の慣習にあたる (`commands/spec-design.md` 完了判定 #11)。
 
 ### SPEC に method 名・SQL・シグネチャを記載しない
 
@@ -125,7 +125,9 @@ Implementation の後も、責務・凝集度・結合度・依存方向・可�
 
 違いは設計判断をいつ行うかにある。Code Review を「初めて設計を考える場所」にしない、という一点に集約される。コードレベルの設計判断が Code Review へ集中しないよう、設計工程をコード生成より前へ広げたものと位置づける。
 
-## 小さい変更でどこまで省略できるか
+## 大きい開発の内側で、どこまで省略できるか
+
+3 track のどれに入るかは `design-phase-flow.md` 「Route selection (3 track)」が決める。この節が決めるのは、大きい開発に入った後で 4 つの成果物のうちどれを作成するかになる。
 
 判定は責務ベースで行う。PR 本数を基準にすると「SPEC を作成する → PR を分ける」ではなく「PR を分けることが先に決まっている → SPEC を作成する」という逆転が起きる。
 
@@ -135,9 +137,9 @@ Implementation の後も、責務・凝集度・結合度・依存方向・可�
 | 実装単位が複数ある、または実装順序・依存関係の整理が必要 | SPEC |
 | 既存コードの実装場所や依存関係が不明 | Code Investigation |
 | interface / SQL / TX 境界 / 排他制御で実装時に迷う | 詳細設計 |
-| どれにも当たらない | すべて省略して直接実装 |
+| どれにも当たらない | 大きい開発ではない。`design-phase-flow.md` で track を選び直す |
 
-省略したときは、PR 本文に省略の理由を 1 行記載する。各 command 側の省略条件は `commands/spec-detail.md` Step 0 と `design-phase-flow.md` 「Skip judgment」が canonical。
+省略したときは、PR 本文に省略の理由を 1 行記載する。各 command 側の省略条件は `commands/spec-detail.md` Step 0 と `design-phase-flow.md` 「Route selection (3 track)」が canonical。
 
 ## 実例: 物理削除を論理削除へ変更する
 
@@ -157,7 +159,7 @@ SPEC に「finder.go の FindByID を変更する」と記載しない理由は�
 
 ## 関連
 
-- `design-phase-flow.md` — 遷移条件と skip 判断
+- `design-phase-flow.md` — 遷移条件と 3 track の選択 (track 判定の canonical)
 - `commands/spec-plan.md` Step 3 — 分割の優先順位 (canonical)
 - `commands/spec-detail.md` — Code Investigation と詳細設計の手順 (canonical)
 - `guidelines/common/spec-driven-development.md` — 外部 SDD ツール (Spec Kit / Kiro / cc-sdd) の調査と失敗パターン
