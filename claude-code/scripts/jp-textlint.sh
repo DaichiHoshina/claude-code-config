@@ -108,7 +108,7 @@ for s in re.split("。", "\n".join(lines)):
 fi
 
 # 5. NG-DICTIONARY 語 hit — 判定は jp-quality-lint.sh (hook と同じ lib/jp-quality/) に委譲する。
-# 構造 warn ([warn] 構造:) は本 script の 1-2 で詳細版を出しているため除外する
+# 構造 warn ([warn] 構造:) は本 script の 1-2 で詳細版を出しているため対象外にする
 QLINT="${SCRIPT_DIR}/jp-quality-lint.sh"
 if [[ -x "$QLINT" && -f "$NGDICT" ]]; then
   ng_out=$(printf '%s' "$clean" | JP_QUALITY_DICT="${JP_QUALITY_DICT:-$NGDICT}" "$QLINT" 2>/dev/null | grep -E '^\[(block|warn)\]' | grep -v '^\[warn\] 構造:' || true)

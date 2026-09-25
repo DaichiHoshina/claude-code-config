@@ -6,7 +6,7 @@
 
 以下の command が本 protocol を参照する。各 command 側には check 対象の doc 種別のみ記載する。
 
-- `commands/spec-design.md` (Step 8.5)
+- `commands/sdd-design.md` (Step 8.5)
 - `commands/prd.md` (Phase 4.5)
 - `commands/post-comment.md` (Step 2.5)
 - `commands/git-push.md` (Step 2 / Step 5.5)
@@ -21,7 +21,7 @@
   - Writing axis: `guidelines/writing/PRINCIPLES.md` (体言止め / 助詞省略 / 主語省略 / 1 文長 / 抽象語放置 等)
 - **Check 順序**: structure gate (`文書全体の読みやすさ`) → 媒体別 / type 別差分 → 語彙・局所。文や単語を修正する前に、見出しと各段落の主張だけを読む。問題が複数 section にまたがる場合は、意味を保ったまま構成変更や文書分割まで行ってから局所的な書き直しへ進む。
 - **Severity 判定**: 事実の創作、意味・時制・因果関係の変化、宛先を誤る表現、必須形式の破損だけを Critical とする。文長・段落長・語尾・構造の偏りは、前後を読んで支障がある場合だけ Warning とする。
-- **Rewrite 発動条件**: 確認済みの Critical、または実際に読み違えの原因になる Warning がある場合だけ書き直す。Warning の件数や lint の比率だけでは発動しない。
+- **Rewrite 発動条件**: 確認済みの Critical、または実際に読み違えの原因になる Warning がある場合だけ書き換える。Warning の件数や lint の比率だけでは発動しない。
 - **Loop 上限**: rewrite → re-check を max 2 loops まで実施する。2 loop 後も残存すれば user に残存違反と loop limit reason (info gap / decision pending 等) を提示して続行確認する。
 - **File 永続化時**: `Read` で書き出した内容を再取得し、`Edit` で該当箇所のみ差分修正する (全文書き直ししない)。
 - **Chat / stdin draft 時**: 生成 text を直接 self-check し、rewrite 済 draft を出力に反映する。

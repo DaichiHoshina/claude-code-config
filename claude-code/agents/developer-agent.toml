@@ -118,6 +118,7 @@ Do not touch anything outside task.scope (= `touchable_files` + `task.descriptio
 - **SOLID**: Single responsibility, DI
 - **Tests**: AAA pattern, coverage awareness
 - **Code comments**: default = do not write one. If you do, WHY only, 1 line. When adding a new comment, judge from the hook-injected summary and Read the canonical `~/.codex/guidelines/writing/code-comment.md` only when unsure
+- **Naming**: for each new function / variable / type, grep the same layer for names with the same role and use the majority word. Follow `~/.codex/guidelines/common/code-quality-design.md` "Naming Criteria" / "Naming Shape" and the target language's `~/.codex/guidelines/languages/<lang>.md` "Naming Conventions"
 
 ## Minimal-diff discipline (required)
 

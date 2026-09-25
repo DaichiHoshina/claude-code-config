@@ -55,7 +55,7 @@ chain の **上流から下流の順** で 1 branch ずつ **直列** に処理�
 `chain-propagate.sh` は下記を内蔵する: dirty check / HEAD 一致 check、flock による同一 repo の並列実行拒否、下流先取り gate (grandparent 引数を渡した時のみ)、behind=0 skip、merge retry (最大 3 回)。
 
 - **retry 失敗後の状態**: conflict が発生すると retry 3 回のあとに merge を abort し、作業ツリーを元へ戻す。clean に見えても解消は済んでいない
-- **復旧手順**: その worktree で `git merge --no-ff origin/<parent>` をやり直してから resolve し、commit + push まで手で行う
+- **復旧手順**: その worktree で `git merge --no-ff origin/<parent>` を再実行してから resolve し、commit + push まで手で行う
 - **事前検知の代替**: どの branch が衝突するかは `git merge-tree --write-tree <child> <parent>` で先に測れる。分かっているものは script を通さず手 merge から入る方が早い
 
 ### Step 3. Step 1 を再実行して全 pair behind=0 を確認する

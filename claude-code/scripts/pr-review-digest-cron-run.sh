@@ -36,7 +36,7 @@ git -C "${REPO}" rev-parse --git-dir >/dev/null 2>&1 || { echo "ERROR: --repo �
 # plist 側で出力先を変えても同じ先へ出力する
 _log() { printf '%s %s\n' "$(date '+%F %T')" "$*"; }
 
-PROMPT='/pr-review-digest を実行して、前回集計以降に付いた他者コメントを対象 doc に追記する。build.mjs が exit 0 なら done、fail なら snapshot から restore して報告する。'
+PROMPT='/pr-review-digest を実行して、前回集計以降に付いた他者コメントを対象 doc に追記する。build-index.mjs が exit 0 なら done、fail なら snapshot から restore して報告する。'
 
 _log "pr-review-digest start"
 rc=0

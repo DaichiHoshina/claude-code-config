@@ -16,7 +16,7 @@ Goal: reduce cognitive load without changing the writer's meaning. Preserve fact
 
 On `/jp-fix` or a natural-language readability request, apply all self-checks below to the target text in the current conversation. Do not launch a forked skill context; it loses the natural-language target when no explicit arguments are passed. Output form depends on submode.
 
-- `write` / `rewrite`: 書き直した本文をまとめて出す
+- `write` / `rewrite`: 書き換えた本文をまとめて出す
 - `review`: Findings のみで書き直し文は出さない (`commands/jp-fix.md` 「Output Format」 `review` 行と 「Forbidden」 の `Edit/Write in review submode` が該当箇所)
 - `outline`: 見出し階層だけを出す。各見出しは「見出し — 役割 — 所有する主張」形式にする
 
@@ -27,7 +27,7 @@ Target priority (`review` / `rewrite` never ask back):
 3. User explicitly refers to the previous assistant output → use that output
 4. None of the above → write new text on the requested topic
 
-`review` / `rewrite` では "What should I check?" と聞かず、上の優先順で対象を決める。`write` / `outline` で本文の意味が変わる前提が不明な場合だけ、`commands/jp-fix.md` の 4-Question Checkpoint に従って 1 問質問できる。評価前に code block (` ``` ` / `` ` ``) を除外する。
+`review` / `rewrite` では "What should I check?" と聞かず、上の優先順で対象を決める。`write` / `outline` で本文の意味が変わる前提が不明な場合だけ、`commands/jp-fix.md` の 4-Question Checkpoint に従って 1 問質問できる。評価前に code block (` ``` ` / `` ` ``) を対象外にする。
 
 ## Determine medium first
 
@@ -72,7 +72,7 @@ skeleton pass で構造上の問題が残存する場合は、局所的な文だ
 
   字数・節数・短文化のノルマはこの確認に追加しない
 
-Grep の hit 数や section 数だけでは書き直さない。各 hit の文脈を読み、ADR / RCA に必要な履歴や、別概念を意図した用語は保持する。
+Grep の hit 数や section 数だけでは書き換えない。各 hit の文脈を読み、ADR / RCA に必要な履歴や、別概念を意図した用語は保持する。
 
 通常の review / rewrite では lint JSON や文章統計を作成・受領しない。user が文体指標の測定を明示した場合だけ診断結果を参照し、通常の書き直しや完了判定へ含めない。指標の有無にかかわらず、`PRINCIPLES.md` 「推敲5観点」の [A] / [E] と 「文単位の品質規約」・`### 圧縮文を開く` を目視する。
 
@@ -82,7 +82,7 @@ rewrite 前後を比較し、元にない事実・時制・因果関係・評価
 
 ## Rewrite output format
 
-`write` / `rewrite` 時のみ適用する (`review` は Findings のみで書き直し文を出さない、Startup behavior 参照)。hit の列挙や文体規則の適用報告で止めず、書き直した本文をまとめて返す。具体的な動作・状態・数値は入力にあるものだけを使い、不足している事実を補わない。
+`write` / `rewrite` 時のみ適用する (`review` は Findings のみで書き換え文を出さない、Startup behavior 参照)。hit の列挙や文体規則の適用報告で止めず、書き換えた本文をまとめて返す。具体的な動作・状態・数値は入力にあるものだけを使い、不足している事実を補わない。
 
 file を更新した場合の結果は、成果だけを直接述べる。変更した場合は文書全体に関わる要点を 1 文で返し、変更が不要なら「読み違いにつながる問題は見つからなかった」とだけ返す。「読みやすさチェックが完了した」「内容は明確」「他は修正不要」などの全体評価、個々の言い換え、触らなかった箇所、事実確認の過程、成功した build / lint、今後の改善案を返さない。失敗や未解決の問題は省かない。
 

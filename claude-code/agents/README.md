@@ -8,11 +8,11 @@ Description and mapping of agents (autonomous sub-processes) used by Claude Code
 
 | Agent | Model | Role | Primary use |
 |-------|-------|------|-------------|
-| **reviewer-agent** | sonnet 5 | Review owner | Code quality, security, test review |
-| **po-agent** | fable 5 | Strategy decider | Product strategy, worktree mgmt, decision return |
-| **manager-agent** | sonnet 5 | Task decomposition & allocation | Large task allocation, integration verify |
-| **developer-agent** | sonnet 5 | Implementer | Code impl, fix, add |
-| **explore-agent** | sonnet 5 | Explorer/analyzer | Codebase investigation, parallel search |
+| **reviewer-agent** | opus 5.5 (low) | Review owner | Code quality, security, test review |
+| **po-agent** | opus 5.5 (low) | Strategy decider | Product strategy, worktree mgmt, decision return |
+| **manager-agent** | opus 5.5 (low) | Task decomposition & allocation | Large task allocation, integration verify |
+| **developer-agent** | opus 5.5 (low) | Implementer | Code impl, fix, add |
+| **explore-agent** | opus 5.5 (low) | Explorer/analyzer | Codebase investigation, parallel search |
 
 > Model canonical は各 agent frontmatter の `model:`。この表は frontmatter 導出 — 更新時は `grep -H "^model:" agents/*.md` で一致を検証する。決定 log: `references/model-selection.md` (2026-07-11: po = Fable 5 / 他は Sonnet 5、Opus 4.7 pin 解除)。
 

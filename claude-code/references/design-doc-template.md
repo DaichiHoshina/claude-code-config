@@ -1,6 +1,6 @@
 # Design Doc Template
 
-12-section full template used by `/spec-design --type full`. The default is the spec-type template (`design-doc-spec-template.md`).
+12-section full template used by `/sdd-design --type full`. The default is the spec-type template (`design-doc-spec-template.md`).
 
 ## 12-section structure
 

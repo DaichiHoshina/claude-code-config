@@ -1,7 +1,8 @@
 ---
 name: manager-agent
 description: Manager agent - Task decomposition & allocation. Parent runs Developer parallel. No implementation.
-model: claude-sonnet-5
+model: claude-opus-5-5
+effort: low
 color: blue
 permissionMode: normal
 memory: project

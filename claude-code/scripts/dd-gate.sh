@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# spec 型 Design Doc の機械判定 gate。/spec-design Step 6 から呼ぶ。
-# 判定 5 項目: (1) Implementation Surface の合計 1 行と表の行数の一致
-#             (2) 未確定 marker と「決める時点 = SPEC 作成前 / DD レビュー」の残存
+# spec 型 Design Doc の機械判定 gate。/sdd-design Step 6 から呼ぶ。
+# 判定 6 項目: (1) Implementation Surface の合計 1 行と表の行数の一致
+#             (2) 未確定 marker と「決める時点 = 作業計画書作成前 / DD レビュー」の残存
 #             (3) 「受け入れ条件」 / 振る舞い / 決定事項 の識別子・HTTP status (warn)
 #             (4) 決定事項の表 cell 長 (160 字超は読めない)
 #             (5) 分岐のある受け入れ条件が 2 行以上あるのに振る舞いの図も番号付き手順も無い (warn)
+#             (6) 受け入れ条件と振る舞いに曖昧な形容 (適切に / 堅牢 等) が残っている (warn)
 # 出力: 1 行 1 判定 (PASS / FAIL / WARN)。FAIL が 1 つでもあれば exit 1
 set -u
 
@@ -72,8 +73,9 @@ fi
 pending=$(grep -c '【未確定' "$DD" || true)
 if [ "$pending" -eq 0 ]; then report PASS open-marker '【未確定】marker 0'; else report FAIL open-marker "【未確定】marker ${pending} 件"; fi
 oq_rows=$(section 'Open Questions|未確定事項' | grep '^| Q' | grep -v '| 確定' || true)
-oq_block=$(printf '%s\n' "$oq_rows" | grep -E 'SPEC 作成前|DD レビュー' | grep -vE '暫定決定|決定 [0-9]+|案 [A-Z]' | grep -c . || true)
-if [ "$oq_block" -eq 0 ]; then report PASS open-deadline '決める時点 = SPEC 作成前 / DD レビュー の未決 0'; else report FAIL open-deadline "SPEC を止める未決 ${oq_block} 件"; fi
+# 旧称「SPEC 作成前」で書かれた既存の DD も同じく判定する
+oq_block=$(printf '%s\n' "$oq_rows" | grep -E '作業計画書作成前|SPEC 作成前|DD レビュー' | grep -vE '暫定決定|決定 [0-9]+|案 [A-Z]' | grep -c . || true)
+if [ "$oq_block" -eq 0 ]; then report PASS open-deadline '決める時点 = 作業計画書作成前 / DD レビュー の未決 0'; else report FAIL open-deadline "作業計画書を止める未決 ${oq_block} 件"; fi
 
 # (3) 識別子と HTTP status (warn)
 spec_body=$( { section 'Acceptance Criteria|受け入れ条件'; section "$BEHAVIOR_PAT"; section 'Design Decisions|決定事項'; } )
@@ -92,7 +94,7 @@ if [ "$long_cells" -eq 0 ]; then report PASS decision-cell '160 字超の cell 0
 # (`references/design-doc-spec-template.md` Section 6「条件の表 1 行では追えない場面に限る」)。
 branch_rows=$(section 'Acceptance Criteria|受け入れ条件' \
   | grep '^|' | grep -v '^| *-' \
-  | grep -cE '失敗|エラー|重複|同時|期限|取り消|再送|拒否|競合|上限|超え|できない' || true)
+  | grep -cE '失敗|エラー|重複|同時|期限|キャンセル|取り消|再送|拒否|競合|上限|超え|できない' || true)
 behavior_form=$(section "$BEHAVIOR_PAT" | grep -cE '^```mermaid|^[0-9]+\. ' || true)
 if [ "$branch_rows" -lt 2 ]; then
   report PASS behavior-diagram "分岐のある条件 ${branch_rows} 行 (2 行未満は図の要否を判定しない)"
@@ -101,5 +103,13 @@ elif [ "$behavior_form" -gt 0 ]; then
 else
   report WARN behavior-diagram "分岐のある条件 ${branch_rows} 行に対して振る舞いの図も番号付き手順も無い (sequence / state 図か番号付き手順を置く)"
 fi
+
+# (6) 曖昧な形容 (warn)
+# 語彙に依存して取りこぼしと誤検出の両方が発生するので、behavior-diagram と同じく FAIL にしない。
+# 「適切に処理する」の類は何を満たせば良いかの判断を実装者へ預けることになり、
+# 受け入れ条件として機能しない (`commands/sdd-design.md` 「Bad Design Doc」)。
+VAGUE_PAT='適切に|正しく|高速|堅牢|直感的|柔軟|十分|スムーズ'
+vague=$( { section 'Acceptance Criteria|受け入れ条件'; section "$BEHAVIOR_PAT"; } | grep -cE "$VAGUE_PAT" || true)
+if [ "$vague" -eq 0 ]; then report PASS vague-adjective '曖昧な形容 0'; else report WARN vague-adjective "曖昧な形容を含む行 ${vague} (測れる条件に書き換える)"; fi
 
 exit $fail

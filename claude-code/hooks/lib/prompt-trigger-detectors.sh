@@ -17,7 +17,7 @@ readonly _OUTWARD_SHARE_TRIGGERS=(
 readonly _OUTWARD_EXTRA_TRIGGERS=(
   "プルリク" "commit" "コミット" "push" "issue" "slack" "notion"
   "design doc" "デザインドック" "設計書" "prd" "rca" "障害報告" "ポストモーテム" "postmortem"
-  "/git-push" "/commit" "/post-comment" "/spec-design" "/prd" "/docs"
+  "/git-push" "/commit" "/post-comment" "/sdd-design" "/prd" "/docs"
   "ドラフト" "下書き"
 )
 
@@ -188,7 +188,7 @@ _inject_chat_selfcheck_if_signal() {
   fi
   printf '%s\n' "${_SC_NOW}" > "${_SC_FLAG}" 2>/dev/null || true
 
-  printf '%s\n' "[chat-selfcheck] 送信前に、事実・時制・因果関係・主体・書き手の評価を変えていないか確認する。機械検出は確認箇所を探す補助に留め、語尾や文長の数値だけを理由に書き直さない"
+  printf '%s\n' "[chat-selfcheck] 送信前に、事実・時制・因果関係・主体・書き手の評価を変えていないか確認する。機械検出は確認箇所を探す補助に留め、語尾や文長の数値だけを理由に書き換えない"
   return 0
 }
 
@@ -214,7 +214,7 @@ _is_outward_writing_trigger() {
 # === NG 語の指定 (「X も禁止にして」等) 検出 → 候補を log に記録し、登録手順を inject ===
 # user が chat で語を禁止と言った turn に、候補語を ~/.claude/logs/ng-candidates.log へ書き、
 # その turn で NG-DICTIONARY.md へ登録する手順 (references/on-demand-rules/ng-word-register.md) を注入する。
-# 短い発話 (80 字以内) に限り、辞書に既にある語は inject から外す (log には registered と書く)
+# 短い発話 (80 字以内) に限り、辞書に既にある語は inject の対象にしない (log には registered と書く)
 _inject_ng_word_capture_if_trigger() {
   local prompt="$1"
   [[ -n "${prompt}" ]] || return 1

@@ -6,6 +6,8 @@ Position and transitions of 6 commands from requirements clarification through i
 
 この遷移に登場する slash command は Claude Code 向けで、Cursor の `~/.cursor/commands` には置いていない。
 
+**語の使い分け**: 成果物は PRD → Design Doc → 作業計画書 (Implementation Plan) → Phase 詳細設計 の順に作る。Phase は 1 PR に対応する変更単位を指し、PRD のマイルストーンにある企画 / 開発 / テスト / リリースの期間は「プロジェクトフェーズ」と書いて区別する。受け入れ条件は機能が正しいかを、Phase 完了条件はその PR を merge できるかを判定する。
+
 ## Transition diagram
 
 ```
@@ -13,7 +15,7 @@ Position and transitions of 6 commands from requirements clarification through i
    │
    ├─(0) Sources scattered ──→ /prepare (read-only, R-n / 現状 / 未確定点)
    │                          │
-   │                          ▼ (feeds /prd or /spec-design)
+   │                          ▼ (feeds /prd or /sdd-design)
    ├─(1) Design unclear ──→ /brainstorm (Superpowers, interactive refinement)
    │                          │
    │                          ▼
@@ -35,22 +37,28 @@ Position and transitions of 6 commands from requirements clarification through i
    ┌────────────────────┴─────────────────────┐
    │ 小さい開発                             │ 大きい開発
    ▼                                        ▼
-(4) /plan (plan file 1 本)            (3) /spec-design
+(4) /plan (plan file 1 本)            (3) /sdd-design
    │                                        │
    │                                        ▼
    │                                 [Design Doc (docs/design/*.md)]
    │                                        │
    │                                        ▼
-   │                        (4) /spec-plan (作業計画書: Phase = PR)
+   │                        (4) /sdd-plan (作業計画書: Phase = PR)
    │                                        │
    │                                        ▼
-   │                        (4.5) /spec-detail (単純な Phase は省略)
+   │                        (4.5) /sdd-phase-design (単純な Phase は省略)
+   │                                        │
+   │                                        ▼
+   │                        (4.7) /explain (設計の説明, per Phase)
    │                                        │
    ▼                                        ▼
-(5) /dev | /flow                      (5) /spec-dev (Phase 1 つ)
+(5) /dev | /flow                      (5) /sdd-implement (Phase 1 つ)
    │                                        │
    │                                        ▼
-   │                        (5.5) /explain (read-only, per Phase)
+   │                        (5.3) /sdd-review (Phase の review)
+   │                                        │
+   │                                        ▼
+   │                        (5.5) /explain (code の説明, per Phase)
    │                                        │
    └────────────────────┬─────────────────────┘
                          ▼
@@ -69,10 +77,12 @@ Position and transitions of 6 commands from requirements clarification through i
 | 1.5 | `/fact-check` | Proposal / candidate list | chat (verdict table + review) | Reality check |
 | 1.6 | `/grill` | 確定前の設計案 | chat (前提の不足と未決定点) | Premise check |
 | 2 | `/prd` | Requirements | chat or `--out` md | Requirements definition |
-| 3 | `/spec-design` | PRD (`--prd`) or natural language | `docs/design/<slug>.md` (spec 型: 受け入れ条件の表 + 決定事項) | Design (spec) |
-| 4 | `/spec-plan` `/plan` | Design Doc (受け入れ条件の表) or pre-designed premise | 作業計画書 `plans/<issue 番号>/*.md` (spec 系。責務まで書き実装形は書かない) / `~/.claude/plans/*.md` (ai-tools) | Impl planning |
-| 4.5 | `/spec-detail` | 作業計画書 Phase n | 詳細設計 `<SPEC 名>-phase<n>.md` (既存 code 調査 + 実装形)。単純な Phase は省略 | Detail design |
-| 5 | `/spec-dev` `/dev` `/flow` | 詳細設計 / 作業計画書 Phase / plan / task | Code changes | Implementation |
+| 3 | `/sdd-design` | PRD (`--prd`) or natural language | `docs/design/<slug>.md` (spec 型: 受け入れ条件の表 + 決定事項) | Design (spec) |
+| 4 | `/sdd-plan` `/plan` | Design Doc (受け入れ条件の表) or pre-designed premise | 作業計画書 `plans/<issue 番号>/*.md` (spec 系。責務まで書き実装形は書かない) / `~/.claude/plans/*.md` (ai-tools) | Impl planning |
+| 4.5 | `/sdd-phase-design` | 作業計画書 Phase n | Phase 詳細設計 `<作業計画書名>-phase<n>.md` (既存 code 調査 + 実装形)。単純な Phase は省略 | Detail design |
+| 5 | `/sdd-implement` `/dev` `/flow` | Phase 詳細設計 / 作業計画書 Phase / plan / task | Code changes | Implementation |
+| 5.3 | `/sdd-review` | 作業計画書 Phase n + Phase の diff | chat (`/review` の指摘) | Review before understanding |
+| 4.7 | `/explain` | 作業計画書 Phase n + Phase 詳細設計 | chat (層と責務 / 設計判断 / 処理の順序の説明) | Understanding the design before implementation |
 | 5.5 | `/explain` | Phase diff (default: working diff) | chat (explanation the user can restate) | Understanding before PR / next Phase |
 
 ## Decision axis for command selection
@@ -82,12 +92,15 @@ Position and transitions of 6 commands from requirements clarification through i
 | Sources scattered across issue / PRD / Slack, need the whole picture first | `/prepare <issue or PRD>` |
 | Requirements and design both unclear | `/brainstorm` |
 | Requirements exist but not organized | `/prd` |
-| PRD done, need to create design | `/spec-design --prd <path>` |
-| Design done, need phase breakdown (PR 単位の作業計画書) | `/spec-plan <path>` (ai-tools 用 plan file なら `/plan`) |
-| 作業計画書 done, Phase n の実装形 (method / SQL 方針 / TX) が未定 | `/spec-detail <path> --phase <n>` |
-| 作業計画書 done, implement Phase n | `/spec-dev <path> --phase <n>` (詳細設計があれば入力に取る) |
+| PRD done, need to create design | `/sdd-design --prd <path>` |
+| Design done, need phase breakdown (PR 単位の作業計画書) | `/sdd-plan <path>` (ai-tools 用 plan file なら `/plan`) |
+| 作業計画書 done, Phase n の実装形 (method / SQL 方針 / TX) が未定 | `/sdd-phase-design <path> --phase <n>` |
+| Phase 詳細設計 done (または省略), understand the design before implementing | `/explain <path> --phase <n>` (`/sdd-phase-design` が Next に記載する) |
+| 作業計画書 done, implement Phase n | `/sdd-implement <path> --phase <n>` (Phase 詳細設計があれば入力に取る) |
 | Design done, no 作業計画書 (単発の変更、または hierarchy が必要) | `/dev` or `/flow` |
-| Phase implemented, understand the diff before PR / next Phase | `/explain` (read-only。`/spec-dev` の Phase 完了報告が Next command に出す) |
+| Phase implemented, review the diff | `/sdd-review <path> --phase <n>` (`/sdd-implement` の Phase 完了報告が Next command に記載する) |
+| Phase reviewed, understand the diff before PR / next Phase | `/explain` (read-only。`/sdd-review` が修正するもの 0 件のとき Next に記載する) |
+| 全 Phase を実装し終えて、設計と code の差を確かめたい | `/sdd-converge <作業計画書 path>` (chain 外。既定の遷移には入れず、必要なときだけ発火させる) |
 
 ## Route selection (3 track)
 
@@ -97,22 +110,22 @@ Position and transitions of 6 commands from requirements clarification through i
 |---|---|---|---|
 | 極小 | 1 file / 1 symbol / typo / 数行の bug fix | `/dev` (`/plan` Step 2 が `inline` を返すこともある) | code の diff だけ |
 | 小さい開発 | 単一 service 内の機能追加 / 数十行の修正 | `/prd` → `/plan` → `/dev` or `/flow` | PRD (chat でよい) + plan file |
-| 大きい開発 | 複数 service にまたがる / API / DB / 画面が変わる / 破壊的変更 | `/prd` → `/spec-design` → `/spec-plan` → `/spec-detail` → `/spec-dev` → `/explain` | PRD / Design Doc / 作業計画書 / 詳細設計 |
+| 大きい開発 | 複数 service にまたがる / API / DB / 画面が変わる / 破壊的変更 | `/prd` → `/sdd-design` → `/sdd-plan` → `/sdd-phase-design` → `/explain` → `/sdd-implement` → `/sdd-review` → `/explain` | PRD / Design Doc / 作業計画書 / Phase 詳細設計 |
 
 - 極小では PRD も plan file も作らない。判断の無い変更で成果物を増やさない
-- 小さい開発では Design Doc と作業計画書を作らない。spec 系 4 本は大きい開発専用で、command 名の `spec-` 前方一致がその見分けになる
+- 小さい開発では Design Doc と作業計画書を作らない。spec 系 6 本は大きい開発専用で、command 名の `spec-` 前方一致がその見分けになる
 - 小さい開発の `/prd` は chat へ出す形でよく、md にしなくてよい (`commands/prd.md`)
 - 実装の進め方 (inline / `/dev` / `/flow` N / `/workflow`) は `commands/plan.md` Step 2 の実行 mode 判定表が canonical で、この表では決めない
-- **各 command は Next を 1 行記載する**: 出口が一意に決まる command は、出力の末尾に `Next: /cmd  (理由)` を 1 行記載する。出口が複数ある read-only の command (`/grill` 等) は記載しない。自動で次へ進むのは `/plan --go` と `/flow --auto` だけで、大きい開発の Phase 境界は user が発火する (`commands/spec-dev.md` Step 4)
+- **各 command は Next を 1 行記載する**: 出口が一意に決まる command は、出力の末尾に `Next: /cmd  (理由)` を 1 行記載する。出口が複数ある read-only の command (`/grill` 等) は記載しない。自動で次へ進むのは `/plan --go` と `/flow --auto` だけで、大きい開発の Phase 境界は user が発火する (`commands/sdd-implement.md` Step 4)
 - **小さい開発へ下げない変更**: 破壊的変更 / migration / 複数 component にまたがる機能は、規模が小さく見えても大きい開発の track で扱う。判定表と失敗 pattern: `../guidelines/common/spec-driven-development.md`
 
 ## Q1-Q5 inheritance
 
-The PRD section `1.5 decision rationale` (Q1-Q5) confirmed in `/prd` is **transcribed without re-evaluation** in `/spec-design --prd <path>`. Append only Qs whose premise changes due to design.
+The PRD section `1.5 decision rationale` (Q1-Q5) confirmed in `/prd` is **transcribed without re-evaluation** in `/sdd-design --prd <path>`. Append only Qs whose premise changes due to design.
 
-## /plan vs /spec-design boundary
+## /plan vs /sdd-design boundary
 
-| Aspect | `/spec-design` | `/plan` |
+| Aspect | `/sdd-design` | `/plan` |
 |------|--------------|---------|
 | Primary purpose | Communicate **design decisions** to the team | Determine **phase breakdown** for implementation |
 | Output | spec 型 md (受け入れ条件の表 / 決定事項。`--type full` で 12-section) | Phase 1/2/... and worktree requirement |
@@ -120,12 +133,12 @@ The PRD section `1.5 decision rationale` (Q1-Q5) confirmed in `/prd` is **transc
 | Audience | Reviewers / PM / future self | Implementers (self or developer-agent) |
 | Related agent | None (direct Edit) | PO Agent (for complex cases) |
 
-Both needed for large features. 小さい開発では `/spec-design` を使わず `/plan` だけで進む (「Route selection (3 track)」)。
+Both needed for large features. 小さい開発では `/sdd-design` を使わず `/plan` だけで進む (「Route selection (3 track)」)。
 
 ## Related
 
 - `../guidelines/writing/design-doc-protocol.md` — DesignDoc 4 steps + 10 patterns + anti-patterns + template selection + self-check 18
-- `design-doc-spec-template.md` — spec 型 template (`/spec-design` の既定)
+- `design-doc-spec-template.md` — spec 型 template (`/sdd-design` の既定)
 - `design-doc-template.md` — Full 12-section template (`--type full`)
 - `document-iteration-patterns.md` — Phase progression and revision patterns for rewrites (dynamic supplement)
 - `decision-quality-checklist.md` — 5-question decision quality check

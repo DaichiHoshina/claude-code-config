@@ -1,6 +1,6 @@
-# /spec-plan Step 2 の scope 走査 checklist
+# /sdd-plan Step 2 の scope 走査 checklist
 
-`commands/spec-plan.md` Step 2 で Design Doc に記載された API / Query / Command / 画面ごとに実物を確かめる作業の checklist。本文は「Serena `find_symbol` / grep で対象 file と test file を列挙する」までに絞り、個々の判定はここで持つ。
+`commands/sdd-plan.md` Step 2 で Design Doc に記載された API / Query / Command / 画面ごとに実物を確かめる作業の checklist。本文は「Serena `find_symbol` / grep で対象 file と test file を列挙する」までに絞り、個々の判定はここで持つ。
 
 ## 参照件数と Phase 配置
 

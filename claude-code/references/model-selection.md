@@ -33,10 +33,9 @@ Default: **Opus 5** (`claude-opus-5`、effort `high`。settings.json.template �
 
 Specified in each agent's frontmatter.
 
-**Policy** (2026-09-17〜): 初手の戦略判断・調査・設計 = Opus 5 / 実装・実行系 = Sonnet 5。
+**Policy** (2026-09-24〜): subagent 5 本はすべて Opus 5.5 (`claude-opus-5-5`)、effort `low` とする。
 
-- **Opus 5 (strategy / design)**: po-agent (strategy / design decisions — session の初手判断のみ最上位 tier)
-- **Sonnet 5 (judgment + impl + execution)**: manager-agent (task decomp / parallelism calculation), developer-agent (impl / refactor), explore-agent (read-only exploration), reviewer-agent (12-perspective review)
+- **Opus 5.5 / effort low**: po-agent (strategy / design decisions), manager-agent (task decomp / parallelism calculation), developer-agent (impl / refactor), explore-agent (read-only exploration), reviewer-agent (12-perspective review)
 
 決定履歴:
 
@@ -47,8 +46,9 @@ Specified in each agent's frontmatter.
 - 2026-07-24: Opus 5 が登場 (Fable 5 の半額・品質 0.5% 差)。Manual switching 表に日常開発向けの行を追加した。settings default (`claude-fable-5`) は据え置いた。default が指すのは `/fable` 委譲先の最上位 tier であり、ここを Opus 5 へ下げると委譲の tier が下がる。agent 割当 (po=Fable 5 / 他=Sonnet 5) も現状維持とする
 - 2026-07-26: Opus 5 prompt 差分 4 点 (過剰検証・subagent 過剰・narration・thinking off) を Opus 5 運用節の直後に追記した。source は Anthropic 公式 prompting guide にある。on-demand rule 新設案は却下し既存 file に統合した (分量 8 行、新 file を作るほどでない)
 - 2026-09-17: user 決定でコスパ重視運用に切替。settings default を `claude-fable-5-1` → `claude-opus-5` (effort `high`) へ変更、po-agent (strategy/design) の pin も `claude-fable-5` → `claude-opus-5` へ変更した。実行系 (manager/developer/explore/reviewer) は Sonnet 5 のまま据え置き。availableModels に `claude-opus-5` を追加、modelSettings の effort override 対象を fable-5-1 (low) から opus-5 (high) へ入れ替えた
+- 2026-09-24: user 指示で subagent 5 本の frontmatter を `model: claude-opus-5-5` + `effort: low` に統一した。availableModels に `claude-opus-5-5` を追加した。judge-panel での比較測定はしていない
 
-再測定の契機: 新 model の追加時か、割当先の品質劣化を疑う兆候が現れた時に judge-panel を再実行して割当を見直す。
+再測定の契機: 新 model の追加時か、割当先の品質劣化を疑う兆候が現れた時に judge-panel を再実行して割当を再検討する。
 
 ## Subagent / Workflow の model downgrade
 
@@ -56,6 +56,14 @@ subagent は default で session model を継承する。Fable session では機
 
 - 実測 (2026-07-13 deep-research): downgrade 後でも 102 agent / 355 万 subagent tokens / 約 10 分。全段 Fable 継承なら数倍かかる。徹底調査系は発火前に「claims 上限 × 3 票 ≒ verify agent 数」で概算し、必要なら claims 縮小か budget 指定 (`+500k` 形式) を添える
 - 1M context 変種 (`[1m]`) は attention overhead で応答が体感遅い。大規模 codebase 探索など必要な時のみ `/model` で都度切替する
+
+## 定義 file の frontmatter による切替 (command / skill)
+
+`model:` と `effort:` は command と skill のどちらの frontmatter でも効き、その定義を起動した turn だけ切替わって次の prompt で session の model へ戻る。実装例は `commands/ld.md` (`model: sonnet` + `effort: low`) と `skills/root-cause/SKILL.md` (`model: claude-sonnet-5`)。
+
+- **skill の本文から別の command を指しても切替わらない**。公式 docs に "No automatic inheritance" の記載がある。手順を本文へ書き写しているだけの skill は session の model で動くので、速く書かせたいときは command を直接呼ぶ
+- **skill の frontmatter へ足すと、その skill の全経路に効く**。精度が要る経路 (`--full` や既存 doc の update 等) を同じ skill が持つなら採らない
+- 定義 file の frontmatter 改変は禁止されている (`CLAUDE.repo.md` Editing Rule)。足すなら user の例外承認が要る
 
 ## Effort levels
 

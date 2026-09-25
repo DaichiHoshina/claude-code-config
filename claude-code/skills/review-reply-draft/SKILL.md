@@ -21,13 +21,13 @@ GraphQL で reviewThreads を取得し、次の 2 条件で限定する。
 - `isResolved == false`
 - thread 最後の comment の author が自分以外
 
-「了解です 👍」のように会話が完結している thread は「resolve 操作のみ残 (user 手動)」に分類し、返信対象から外す (一覧化は Step 1.5 で行う)。bot の comment は対象外とする。
+「了解です 👍」のように会話が完結している thread は「resolve 操作のみ残 (user 手動)」に分類し、返信の対象外にする (一覧化は Step 1.5 で行う)。bot の comment は対象外とする。
 
 取得 query の骨格、bot 判定 (`author.__typename == "Bot"`。`login` の `[bot]` suffix は GraphQL に付かない)、resolve 案内の template は `references/pr-review-thread-api.md` が canonical で、Step 1 の前に Read する。
 
 ## Step 1.5. resolve-only thread の一覧案内
 
-Step 1 で「resolve 操作のみ残」に分類した thread は、返信対象から外すだけで終わらせず、reference の resolve template で chat に一覧表示する (`/self-review-fix` Step 5 と同じ形式)。複数 thread は 1 block にまとめ、thread id は Step 1 query の `id` field から取る。
+Step 1 で「resolve 操作のみ残」に分類した thread は、返信の対象外にするだけで終わらせず、reference の resolve template で chat に一覧表示する (`/self-review-fix` Step 5 と同じ形式)。複数 thread は 1 block にまとめ、thread id は Step 1 query の `id` field から取る。
 
 ## Step 2. memory 保存
 
@@ -59,7 +59,7 @@ comment 文言の修正のように、返信とセットで code を修正する
 - 対象 PR の branch を格納した worktree で修正を適用する (場所は `git worktree list` で確認する)
 - **commit しない**。`git diff` を提示し、commit / push は user の判断に委ねる
 - 返信 draft には修正する旨と修正内容の 1 行要約を入れる。commit hash は user の commit 後に差し替える
-- **comment の書き直しで応じる前に、その処理自体が必要かを先に確かめる**。指摘された comment が説明している処理が現行経路で到達しない (no-op / 防御用) なら、書き直しでなく削除を第一候補として提示する。到達しない分岐の説明はどう書いても読み手に伝わらず、往復だけが増える。実際に、同じ comment を 3 度書き直した末に user 判断で revert し、最終的に処理ごと削除した事例がある (canonical: `rules/thinking-principles.md` Section 6)
+- **comment の書き換えで応じる前に、その処理自体が必要かを先に確かめる**。指摘された comment が説明している処理が現行経路で到達しない (no-op / 防御用) なら、書き換えでなく削除を第一候補として提示する。到達しない分岐の説明はどう書いても読み手に伝わらず、往復だけが増える。実際に、同じ comment を 3 度書き換えた末に user 判断で revert し、最終的に処理ごと削除した事例がある (canonical: `rules/thinking-principles.md` Section 6)
 
 ## Step 6. 訂正 flow
 

@@ -11,7 +11,7 @@ Improve human-facing prose (PR body, Design Doc body, Notion, blog, Slack, email
 Code body, code comments, docstrings out of scope.
 
 > **Responsibility split**:
-> - `/spec-design` = assemble design decision document
+> - `/sdd-design` = assemble design decision document
 > - `/jp-fix` = **prose quality itself** (vocab, sentence flow, paragraph coherence, signal)
 
 ## JP 執筆規範 (write/rewrite 時に必須適用)
@@ -28,7 +28,7 @@ Code body, code comments, docstrings out of scope.
 | sub | purpose | input | output |
 |-----|---------|-------|--------|
 | `write` (default) | write from scratch | goal/reader/topic | draft |
-| `rewrite` | rewrite existing | file or paste | file は更新結果、paste は書き直した本文 |
+| `rewrite` | rewrite existing | file or paste | file は更新結果、paste は書き換えた本文 |
 | `review` | proofread (no edit) | file or paste | 5-axis check + finding list |
 | `outline` | structure only | goal/reader/topic | heading hierarchy + intent per section |
 
@@ -54,7 +54,7 @@ no arg or `write` → write mode. First token vs subcommand match; no match → 
 
 `write` / `outline` の着手前は、種別が分かった時点で `skills/writing-knowledge/SKILL.md` の判定表に従い該当 1〜2 file を Read する (本表 Dynamic Load と種別対応を一致させる)。`review` / `rewrite` は下の Dynamic Load を優先する。
 
-`guidelines/writing/PRINCIPLES.md` はコア層 (冒頭 index table の「check / rewrite 実行」行に列挙した section) のみ load する。詳細層 (AI臭を消す4変換 / 避けるパターン / Web 可読性詳細) と全文 load は深い書き直し (`rewrite` mode) 時のみ。深い書き直しでは、複数 section にまたがる構造上の問題を先に直してから局所的な文章を整える。詳細 pattern は `references/writing-patterns.md` on demand。媒体別 file は下の Dynamic Load から 1 件だけ選び、`PRINCIPLES.md` と合わせて最大 2 file にする。
+`guidelines/writing/PRINCIPLES.md` はコア層 (冒頭 index table の「check / rewrite 実行」行に列挙した section) のみ load する。詳細層 (AI臭を消す4変換 / 避けるパターン / Web 可読性詳細) と全文 load は深い書き直し (`rewrite` mode) 時のみ。深い書き直しでは、複数 section にまたがる構造上の問題を先に修正してから局所的な文章を整える。詳細 pattern は `references/writing-patterns.md` on demand。媒体別 file は下の Dynamic Load から 1 件だけ選び、`PRINCIPLES.md` と合わせて最大 2 file にする。
 
 ### 3. Dynamic Load by Type
 
@@ -89,9 +89,9 @@ no arg or `write` → write mode. First token vs subcommand match; no match → 
 
 - **write**: draft 本文を返す。読者や前提の推定が内容を左右した場合だけ、その前提を本文の後に短く添える
 - **rewrite (file)**: file を更新し、最終応答は成果だけを直接述べる。変更した場合は文書全体に関わる要点を 1 文で返し、変更が不要なら「読み違いにつながる問題は見つからなかった」とだけ返す。「読みやすさチェックが完了した」「内容は明確」「他は修正不要」などの全体評価、個々の言い換え、触らなかった箇所、事実確認の過程、成功した build / lint と無関係な warning、今後の改善案は出さない。検証の失敗や未解決の問題は省かない
-- **rewrite (paste / chat)**: 書き直した本文を返す。判断が分かれる変更だけ、本文の後に理由を最大 3 件添える
+- **rewrite (paste / chat)**: 書き換えた本文を返す。判断が分かれる変更だけ、本文の後に理由を最大 3 件添える
 - **review**: `## Findings (priority order, max 5)` (`[axis] location → fix direction`)。採点を明示された場合だけ各軸の点数を添える
-- **outline**: `## Structure` の番号付き `(heading) — 役割 — 所有する主張`。structure gate を満たさない見出しは出力前に直す
+- **outline**: `## Structure` の番号付き `(heading) — 役割 — 所有する主張`。structure gate を満たさない見出しは出力前に修正する
 
 変更が不要な場合も、「品質が収束した」「改善点を出し切った」「これ以上は質が上がらない」と文書全体や将来の改善余地まで断定しない。「今回指定された観点では変更不要」と確認範囲を限定する。今回実行していない過去 turn の build / lint 結果を、現在の検証結果として再掲しない。
 

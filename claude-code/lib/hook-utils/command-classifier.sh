@@ -150,7 +150,7 @@ classify_bash_command() {
   local cmd_without_msg_arg
 
   # commit message 内の危険語リテラル誤発火を防止
-  # git commit -m "..." / -m '...' / -F file の引数値内容と heredoc 本文を除外してから危険語マッチ評価
+  # git commit -m "..." / -m '...' / -F file の引数値内容と heredoc 本文を対象外にしてから危険語マッチ評価
   cmd_without_msg_arg="$(_strip_message_args "$cmd")"
 
   # 禁止操作チェック（危険なコマンド）

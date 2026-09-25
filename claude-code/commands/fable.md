@@ -27,7 +27,7 @@ fable 送り条件 (いずれか 1 つで送る):
 | 読み取り分析 / RCA のみ | `Task(explore-agent, model: fable)` |
 
 - `model` param は agent frontmatter より優先されるため、Sonnet 固定 agent でもそのまま使える
-- prompt contract は `/mode` と同じ: 対象 file path 明示 / やること 1-3 行 / 完了条件 (lint・test 等の verdict)
+- prompt contract は `/plan` Step 2 と同じ: 対象 file path 明示 / やること 1-3 行 / 完了条件 (lint・test 等の verdict)
 - explore-agent へ送るときは **explore contract 必須** (canonical: `agents/explore-agent.md` 「Prompt contract」、欠落は hook が block): `run_id` / `scope_id` / `expected_count: 1` / `target` (worktree_path・branch・head full SHA) / `anchor_evidence` (path:line か path#symbol を 1-3 件) / `paths` / `questions` / `excludes` / `stop_when` / `budget_class` を prompt 先頭に記載する (`--consult` 発火時も同様)
 - **agent は親 transcript を読めない**。ここまでの調査結果・確定済み判断・却下済み案を prompt に書き切る (fable に再調査させるのは節約の逆)
 - **1 task = 1 agent。fan-out しない** (fable 並列は節約と矛盾)
@@ -66,6 +66,6 @@ advisor 出力は助言 text のみで、実装は現 model の inline が担う
 ## 参照
 
 - `references/model-selection.md` (model 選定 canonical / advisor pattern)
-- `commands/mode.md` (N 判定 + prompt contract)
+- `commands/plan.md` Step 2 (N 判定 + prompt contract)
 - `commands/goal.md` (`/goal --checker-model fable` で fable を objective gate の checker に指名できる)
-- `commands/deep.md` (思考の深掘りは `/deep`。`--consult` の 10 行制限を外した長めの問い立てを担う)
+- `commands/deep.md` (思考の深掘りは `/deep`。`--consult` の 10 行制限を無効化した長めの問い立てを担う)

@@ -2,7 +2,7 @@
 
 ## 目的
 
-Opus 5 に切り替えるときに、現行 `<repo-root>/claude-code/` の prompt / rule / config のどこを見直すかをまとめた作業指示書になる。今 (2026-07-27) は Opus 5 の access を organization 側で未取得のため、切替は保留している。
+Opus 5 に切り替えるときに、現行 `<repo-root>/claude-code/` の prompt / rule / config のどこを再検討するかをまとめた作業指示書になる。今 (2026-07-27) は Opus 5 の access を organization 側で未取得のため、切替は保留している。
 
 ## 出典
 
@@ -42,7 +42,7 @@ Opus 5 は前 model より強力だが、旧 model 向けの prompt 習慣が逆
 |---|---|---|---|
 | `CLAUDE.global.md` | 128 | `## Verification before completion`。「完了」「動く」「passing」宣言前に検証 command を fresh 実行して照合する。skip 時は「未検証」と明示 | 記事推奨は削除。ただし外向き宣言 (commit / PR) 前の検証は品質担保に役立つため、trigger を (a) commit / push / PR 前だけに限定し、(b) 「実装した」宣言前の自主検証は削る案が現実的 |
 | `CLAUDE.global.md` | 73 | `## Collaboration stance` の cross-check。subagent report の数値・file 変更・測定値は最低 1 つ実物と照合 | 記事は「自動で実行する」と主張。ただしこの rule は「subagent の hallucination 対策」で発火経緯が明確 (2026-06-22 `manager-hallucination.md` retrospective 起点)。保留し、Opus 5 で実測して cross-check の不一致率が高ければ削る |
-| `rules/thinking-principles.md` | 8 | Section 1「事実と推測を分離する」の「実物で確かめる」全般 | 思考原則は model 非依存を明記しているため保持。ただし「確認済みの事実と推測を区別して書く」は簡潔さと両立するので追記負担が増えないよう見直す |
+| `rules/thinking-principles.md` | 8 | Section 1「事実と推測を分離する」の「実物で確かめる」全般 | 思考原則は model 非依存を明記しているため保持。ただし「確認済みの事実と推測を区別して書く」は簡潔さと両立するので追記負担が増えないよう再検討する |
 | `rules/thinking-principles.md` | 9 | subagent 報告の cross-check | 上と同扱い。実測してから判断 |
 | `CLAUDE.global.md` | 124 | `## Definition of Done`。7 項目の DoD。Types 0 / Tests / Lint / Security / Build / smoke test / DB path | change size で scale する記述があるので、Opus 5 でも trigger 側は保持する。宣言強制の文言だけ緩めるか検討 |
 
@@ -81,7 +81,7 @@ Opus 5 は前 model より強力だが、旧 model 向けの prompt 習慣が逆
 
 - Opus 5 access が未取得で実測できない
 - 記事 1 本のみを根拠に既存 rule を書き換えると、CLAUDE.md `## Compounding Engineering` の「automation infra は 1 か月以上実測してから」に反する
-- 現行の検証系 rule は個別の retrospective (例: 2026-06-22 `manager-hallucination.md`) や実測 log (jp-fix hook の block 実績等) を根拠に組んであるため、model 変更だけで一斉に外すのは危険が伴う
+- 現行の検証系 rule は個別の retrospective (例: 2026-06-22 `manager-hallucination.md`) や実測 log (jp-fix hook の block 実績等) を根拠に組んであるため、model 変更だけで一斉に削除するのは危険が伴う
 
 ## 関連 file
 

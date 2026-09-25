@@ -46,7 +46,7 @@
 
 ## カタカナ造語 → 説明的代替
 
-NG list (どの語が NG か) の canonical は [NG-DICTIONARY.md](NG-DICTIONARY.md) `カタカナ造語禁止` key。本表はその置換例 (何に直すか) を集約する。中身のない印象語を、具体的な動作・状態に開く。
+NG list (どの語が NG か) の canonical は [NG-DICTIONARY.md](NG-DICTIONARY.md) `カタカナ造語禁止` key。本表はその置換例 (何に書き換えるか) を集約する。中身のない印象語を、具体的な動作・状態に開く。
 
 | 禁止語 | 代替表現 |
 |--------|----------|

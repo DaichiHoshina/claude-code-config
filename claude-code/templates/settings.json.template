@@ -420,16 +420,26 @@
     "warp@claude-code-warp": true
   },
   "skillOverrides": {
+    "_archive:config-update": "off",
+    "_archive:pr-comments": "off",
     "aliases": "user-invocable-only",
+    "anthropic-skills:docx": "name-only",
+    "anthropic-skills:import-memory": "name-only",
+    "anthropic-skills:morning": "name-only",
+    "anthropic-skills:pdf": "name-only",
+    "anthropic-skills:pptx": "name-only",
+    "anthropic-skills:skill-creator": "name-only",
+    "anthropic-skills:xlsx": "name-only",
     "api-design": "name-only",
     "architecture-diagram": "name-only",
     "audit": "name-only",
     "backend-dev": "name-only",
+    "baseline-ui": "name-only",
     "brainstorm": "name-only",
     "claude-api": "name-only",
     "cleanup-enforcement": "name-only",
     "data-analysis": "name-only",
-    "spec-design": "name-only",
+    "dataviz": "name-only",
     "docs": "name-only",
     "fewer-permission-prompts": "user-invocable-only",
     "init": "user-invocable-only",
@@ -448,13 +458,12 @@
     "session-mode": "name-only",
     "skills-manage": "name-only",
     "slack-rich-copy": "name-only",
+    "sdd-design": "name-only",
     "sync-to-local": "name-only",
     "techdebt": "name-only",
     "test": "name-only",
     "ui-skills": "name-only",
-    "verify-once": "name-only",
-    "_archive:config-update": "off",
-    "_archive:pr-comments": "off"
+    "verify-once": "name-only"
   },
   "language": "japanese",
   "spinnerVerbs": {
@@ -482,6 +491,7 @@
     "claude-fable-5",
     "claude-fable-5-1",
     "claude-opus-5",
+    "claude-opus-5-5",
     "claude-sonnet-5"
   ],
   "modelSettings": {

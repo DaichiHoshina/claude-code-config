@@ -191,7 +191,7 @@ Delegation target for measured values in CLAUDE.md `## Context Management`.
 
 session の token 消費が多いと感じたときは、行数ベースの推測より `/context` の出力を先に取る。CLAUDE.md 階層 / rule / skill / command description / MCP tool schema / plugin ごとの token 内訳が category 別に表示されるので、どの category が実際に大きいかを実測ベースで判定できる。
 
-2026-09-15 の実測では、「CLAUDE.md 階層 import 332 行」「rules 232 行」を主な削減対象と推測していたが、実際に効いていたのは MCP tool schema (Notion 44 + Slack 18 + Google Calendar 9 = 71 個の deferred tool schema) で、手動 disconnect した後に一気に軽くなった。行数ベースの推測は order of magnitude を外す。
+2026-09-15 の実測では、「CLAUDE.md 階層 import 332 行」「rules 232 行」を主な削減対象と推測していたが、実際に効いていたのは MCP tool schema (Notion 44 + Slack 18 + Google Calendar 9 = 71 個の deferred tool schema) で、手動 disconnect した後に一気に軽くなった。行数ベースの推測は order of magnitude を読み誤る。
 
 **削減しやすい category と方法**:
 
@@ -230,6 +230,34 @@ In repos with tens of thousands of tracked files, `git status` consistently take
 - Measured: 0.41s status in a 29,000-file repo → 0.04s with `git config core.untrackedcache true` + `git config core.fsmonitor true`. Hook side also dropped 510ms → 130ms
 - Local config only, repo-managed files unchanged, shared with worktrees. fsmonitor daemon auto-starts on the first status (+0.5s) and stays resident
 - Apply the same 2 settings when cloning a new large repo. To revert, use two `git config --unset`
+
+## jp-quality NG check cost per write (measured 2026-09-21)
+
+`_block_if_ai_jargon` runs on every Write / Edit of a `.md` / `.txt` file (via `hooks/lib/write-checkers.sh` `_run_ai_jargon_check`) and on commit / PR / MCP text. It costs 115ms per call with the shipped setting, which is not visible in `hook-bench`.
+
+| Condition | Per call |
+|---|---|
+| `JP_QUALITY_STYLE_ENFORCEMENT=1` (settings.json default) | 115ms |
+| Same, text hits an NG term | 285ms |
+| `JP_QUALITY_STYLE_ENFORCEMENT` unset | 27ms |
+
+- `sys` exceeds `user`, so the cost is subprocess spawning, not computation
+- The enforce branch accounts for 88ms of the 115ms. Only 17ms of that is identified: `_assert_required_keys` 7.5ms + 14× `_extract_term_list` 3ms + `_append_jp_quality_inject_log` 6.5ms. **The remaining 71ms is unexplained** and sits in enforce-gated work later in the function
+- `hook-bench.sh` reports `pre-tool-use.sh` at 55ms median because its synthetic input never reaches this path. Measure this function directly, not through the bench
+- This is also why the heaviest bats files are heavy: `lib/jp-quality-check-block.bats` is 94.5s for 51 tests, and `tests/helpers/jp-quality-check.bash` fixture generation is only 3ms of that
+
+Re-measure:
+
+```bash
+T=$(mktemp -d); mkdir -p "$T/.claude/guidelines/writing"
+cp guidelines/writing/NG-DICTIONARY.md "$T/.claude/guidelines/writing/"
+/usr/bin/time -p bash -c "export HOME='$T'; source '$PWD/lib/jp-quality-check.sh'
+  for i in \$(seq 20); do GUARD_CLASS=''; MESSAGE=''; ADDITIONAL_CONTEXT=''; TOOL_NAME=''
+    _block_if_ai_jargon 'この関数は入力を検証してから保存する。' 'commit message' >/dev/null 2>&1; done"
+rm -rf "$T"
+```
+
+Investigation stopped here by user decision (2026-09-21): the absolute saving is small (115ms × writes per day), and the function is the core of a block hook. Resume from the unexplained 71ms if write latency becomes a concern.
 
 ## Cost aggregation tool suite
 

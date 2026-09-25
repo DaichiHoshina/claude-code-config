@@ -76,7 +76,7 @@ target が `gh-pr-review` かつ `$MEM/pr_<repo>_<number>_review.md` (`MEM=$(bas
 ## Guards
 
 - **no auto-execution of post command**
-- long docs (Design Doc / PRD / Notion-scale) → use `/spec-design` (prevent misuse)
+- long docs (Design Doc / PRD / Notion-scale) → use `/sdd-design` (prevent misuse)
 - API limits enforced by caller (GitHub: 65k chars, Slack: 4k, Jira description: 32k)
 
 ## Related

@@ -67,7 +67,7 @@ Flow を全て実行した後、session の task 情報を恒久ナレッジへ�
 1. **恒久ナレッジ候補を抽出**: 次 session 以降も有効な知見だけ採用する。基準は `references/memory-usage.md` 「Recording Targets」 と同じ: misbehavior 再発防止 / non-obvious success / repo から導出できない制約・決定。進捗・commit hash・一時状態は除外 (work-context 側が担当する)。候補 0 件なら step 2-4 を skip し報告に含める
 2. **恒久 file write** (候補 1 件 = 1 file):
    - **命名**: `feedback-<slug>` (挙動修正・作法) / `project-<slug>` (project 制約・決定)、日付 prefix なし
-   - **除外の記載**: 「実測したうえで入れないと決めた」型の否決判断は必ずここへ記載する。work-context は 7 日超で trash へ移るので、そこに置くと同じ対策を後から入れ直す (例: 2026-08-23 に実測付きで否決した caffeinate ラップを 08-29 に入れ直した)
+   - **除外の記載**: 「実測したうえで入れないと決めた」型の否決判断は必ずここへ記載する。work-context は 7 日超で trash へ移るので、そこに置くと同じ対策を後から再度入れる (例: 2026-08-23 に実測付きで否決した caffeinate ラップを 08-29 に再度入れた)
    - **merge 方針**: 同趣旨の既存 memory があれば merge する
    - **body 構成**: fact + `**Why:**` + `**How to apply:**` の構成で記述する (行数上限なし)
    - **Tier B routing (必須)**: write 先は本文を stdin で渡して `bash ~/.claude/scripts/memory-save-helper.sh resolve-permanent-dir` で解決する。social-hit term (canonical: `rules/public-repo-private-data-block.md`) を含めば `references-private/org-knowledge/` (Tier B)、含まなければ Tier A。org 作業 memory (git 管理外) が dest なら helper が移動を自動 skip する
@@ -92,6 +92,7 @@ Flow を全て実行した後、session の task 情報を恒久ナレッジへ�
 | Write 失敗 | body を chat 出力、manual save 案内 |
 | Helper script 不在 | inline で `<repo-root>/memory/` write + MEMORY.md 手 prepend (warn 表示) |
 | name collision (new file 時) | helper `prepare` が `-2/-3` suffix で解決済 |
+| Write が権限で拒否される | file 名が deny rule の語 (`secret` / `credential` / `password` / `token`) を含む。path でなく topic 名を変えて prepare から再実行する |
 | 同日 exact match 複数件 | `merge_target` = 最古 1 件、他は無視 |
 | finalize (index 更新) を省略した | 本文 file だけ残り index に含まれない。`/memory-clean` が index 未登録として検出し、`memory-save-helper.sh reindex --apply` で「## 未分類 (reindex)」章へ追記する |
 

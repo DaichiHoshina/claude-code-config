@@ -15,7 +15,7 @@ description: team メンバーの過去 PR review 傾向を lens として当て
 | `/review-member` (この skill) | team 固有の指摘傾向を lens として当てる pre-PR self-check |
 | `/review` | 汎用的な自作コード review (内部で `comprehensive-review` skill の多観点 review 本体を実行、直接呼ばない) |
 
-review 系を重ねる場合は `/review-member` → 直った差分に対して `/review` の順で実行すると重複が減る。
+review 系を重ねる場合は `/review-member` → 修正済みの差分に対して `/review` の順で実行すると重複が減る。
 
 ## Input
 
@@ -99,7 +99,7 @@ canonical: `references/on-demand-rules/review-noise-discard.md`。この skill �
 - 対象が migration file のみのとき、lens 8 / 9 / 17 / 18 / 33 を優先的に当て、他は落とす
 - 対象が Vue / frontend のみのとき、lens 1 / 3 / 5 / 6 / 15 / 16 / 22 / 24 / 25 / 28 / 30 / 31 / 32 を優先、他 (Go 向け) は落とす
 - lens 30 は「消せる」でなく「消しても壊れない」を根拠にする。この skill は read-only で code を消して test を回せないため、根拠は静的に取れるものに限る (呼び出し元 grep 件数 / 呼び出し元の入力値の引用 / 出力を消費している箇所の grep 0 件)。どれも示せない候補は落とす
-- 対象が md doc (DesignDoc 等) のみのとき、code 向け lens を外して pass で終わらせない。以下 7 つを lens 2 / 14 / 22 / 31 の doc 版として当てる (2026-08-30 の blind backtest で human 4 件に対し pass):
+- 対象が md doc (DesignDoc 等) のみのとき、code 向け lens を対象外にして pass で終わらせない。以下 7 つを lens 2 / 14 / 22 / 31 の doc 版として当てる (2026-08-30 の blind backtest で human 4 件に対し pass):
   - (a) doc 内の数値 / 一覧を同 doc の表と突き合わせる
   - (b) doc が主張する現状挙動 (「PC は 404」「dialog が発生する」等) を実 code (template / handler) で確かめる
   - (c) 同 dir の同種 doc (同列の integration の DesignDoc 等) と節構成を比べ、片方だけにある節 (csv download / test mode / 共通化の可否) を挙げる

@@ -21,9 +21,17 @@ Claude Code を毎日の開発で使うための設定一式をまとめてい�
   - chat 応答と file 書き込みの両方に NG 語の辞書を当てて block する
   - 辞書は `guidelines/writing/NG-DICTIONARY.md`、規範は `guidelines/writing/PRINCIPLES.md`
 - **計画から実装までを command で段階分けする**
-  - 要件は `/prd`、仕様は `/spec-design`、PR 分割は `/spec-plan` が担当する
-  - 実装は `/spec-dev`、差分の理解は `/explain` を使う
+  - 要件は `/prd`、仕様は `/sdd-design`、PR 分割は `/sdd-plan` が担当する
+  - Phase ごとの実装方法 (関数名 / interface / SQL 方針) は `/sdd-phase-design` が決める
+  - 実装は `/sdd-implement`、Phase の review は `/sdd-review`、設計と差分の理解は `/explain` を使う
   - 定義は `commands/` にある
+- **「設計書書いて」のような言い方で command を起動する**
+  - 言い方と command の対応表を `CLAUDE.global.md` に置き、session の開始時に毎回読み込ませる
+  - 全体の一覧は `references/natural-language-triggers.md` にある
+- **関数名と変数名の付け方を決めておく**
+  - repo で使われている語を数えて多い方を使う、平易な英語を使う、削れる語は削る、の 3 基準を置く
+  - 名前の形も決める。変数は名詞、関数は動詞にし、bool は `is` や `has` で始め、`get` と `fetch` のような動詞は意味で使い分ける
+  - 実装の command と review の agent が同じ基準を読む。基準は `guidelines/common/code-quality-design.md`、言語別は `guidelines/languages/` にある
 - **段ごとに機械判定の script を置く**
   - 仕様書の形式は `scripts/dd-gate.sh` が判定する
   - 作業の計画書の形式は `scripts/spec-gate.sh` が判定する
@@ -43,17 +51,19 @@ Claude Code を毎日の開発で使うための設定一式をまとめてい�
 
 ## 使い方の例
 
-ある日の流れを示す。下の図は変更の規模で分かれる 3 つの道順のうち、大きい開発 (複数 service や DB が変わる変更) の道順だ。1 file の修正なら `/dev` だけ、単一 service 内の機能追加なら `/prd`、`/plan`、`/dev` の順に進む短い道順になる。どの道順を選ぶかの判定は `references/design-phase-flow.md` にある。
+ある日の流れを示す。下の図は変更の規模で分かれる 3 つの道順のうち、大きい開発 (複数 service や DB が変わる変更) の道順だ。1 file の修正なら `/dev` だけ、単一 service 内の機能追加なら `/prd`、`/plan`、`/dev` の順に進む短い道順になる。どの道順に進むかの判定は `references/design-phase-flow.md` にある。
 
 ```mermaid
 flowchart TD
   P["/prepare<br>全体像の整理"] --> PRD["/prd<br>要件"]
-  PRD --> DD["/spec-design<br>仕様"]
-  DD --> SP["/spec-plan<br>Phase 分割"]
-  SP --> SD["/spec-dev<br>実装"]
-  SD --> EX["/explain<br>差分の説明"]
-  EX --> RV["/review --fix<br>指摘の修正"]
-  RV --> GP["/git-push --pr"]
+  PRD --> DD["/sdd-design<br>仕様"]
+  DD --> SP["/sdd-plan<br>Phase 分割"]
+  SP --> DT["/sdd-phase-design<br>実装方法"]
+  DT --> EX1["/explain<br>設計の説明"]
+  EX1 --> SD["/sdd-implement<br>実装"]
+  SD --> RV["/sdd-review<br>Phase の review"]
+  RV --> EX2["/explain<br>差分の説明"]
+  EX2 --> GP["/git-push --pr"]
   DD -.- G1["dd-gate.sh"]
   SP -.- G2["spec-gate.sh"]
   SD -.- T["完了条件の test"]
@@ -62,19 +72,24 @@ flowchart TD
 1. **要件を固める**
    - issue を読んで `/prepare` で全体像を chat に整理する
    - `/prd` で要件を記述する
-2. **仕様書を作成する** (`/spec-design`)
+2. **仕様書を作成する** (`/sdd-design`)
    - 受け入れ条件を先に表にする
    - `scripts/dd-gate.sh` で合計行と表の一致を機械判定する
-3. **Phase (= PR) に分ける** (`/spec-plan`)
+3. **Phase (= PR) に分ける** (`/sdd-plan`)
    - 各 Phase に対象 / 対象外 / 完了条件を記述する
    - `scripts/spec-gate.sh` で 400 行超と想定行数の欠けを判定する
-4. **実装する** (`/spec-dev --phase 1`)
+4. **実装方法を決める** (`/sdd-phase-design --phase 1`)
+   - 既存 code を調べてから、関数名 / interface / SQL 方針 / テスト観点を決める
+   - 名前は repo の先例を数えて決め、件数を根拠として記述する
+   - 判断の無い単純な Phase では省略する
+   - `/explain` で Phase の設計の説明を受けてから実装に進む
+5. **実装する** (`/sdd-implement --phase 1`)
    - Phase 1 だけを対象にする
    - 完了条件の test を実行してから報告を出力する
-5. **差分を確かめて修正する**
+6. **review して差分を確かめる**
+   - `/sdd-review` で Phase の範囲と命名を含めて review し、`--fix` で指摘を修正する
    - `/explain` で差分の説明を受け、自分の言葉で説明できるか確かめる
-   - `/review --fix` で指摘の修正を繰り返す
-6. **PR まで進める** (`/git-push --pr`)
+7. **PR まで進める** (`/git-push --pr`)
    - commit、push、PR 作成を 1 command でまとめて実行する
 
 hook は上の流れのどの段階でも文体を検査する。
@@ -117,11 +132,11 @@ flowchart LR
 
 | dir              | 役割                                                                                 |
 | ---------------- | ------------------------------------------------------------------------------------ |
-| `commands/`      | slash command の定義 (`/plan` / `/dev` / `/review` / `/spec-design` など)             |
+| `commands/`      | slash command の定義 (`/plan` / `/dev` / `/review` / `/sdd-design` など)             |
 | `skills/`        | 特定の作業手順を定義した skill (`writing-knowledge` / `comprehensive-review` / `root-cause` など) 12 件 |
 | `agents/`        | explore / developer / reviewer などの agent 定義                                      |
 | `hooks/`         | PreToolUse / Stop などの hook script と、その lib                                     |
-| `rules/`         | auto-load される短い規範 (思考原則 / 質問抑制 / 秘匿情報の block など)。11 件のうち 5 件は `paths:` で対象の言語や file 種別を限定する |
+| `rules/`         | auto-load される短い規範 (思考原則 / 質問抑制 / 秘匿情報の block など)。11 件のうち 7 件は `paths:` で対象の言語や file 種別を限定する |
 | `guidelines/`    | 言語別・文書別の詳細規範 (writing / backend / frontend)                              |
 | `references/`    | command や rule から参照する詳細仕様と on-demand rule                                |
 | `scripts/`       | 同期、機械判定、lint、memory 管理などの補助 script                                    |

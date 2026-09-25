@@ -1,0 +1,1369 @@
+<!-- type: decision -->
+<!-- status: active -->
+<!-- created: YYYY-MM-DD --><!-- AI: 必ず今日の日付に置換する。placeholder のまま保存しない -->
+<!-- updated: YYYY-MM-DD --><!-- AI: doc 本文を実質編集したら必ず今日の日付に書き換える。作成時は created と同じ日付でよい -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>{タイトル例: oripa 抽選 lock 戦略の選定}</title>
+<style id="local-docs-style">
+/* local-docs-decorate v5.0 — token + dark mode (manual-creater の設計を取り込み) */
+:root {
+  --primary-black: #000000;
+  --primary: #0070F3;
+  --primary-soft: #E8F1FE;
+  --primary-orange: #FF832D;
+  --secondary-red: #FF0230;
+  --secondary-red-light: #FFF4F4;
+  --secondary-blue-light: #F4FBFF;
+  --link-blue: #334ED4;
+  --error-red: #DD2352;
+  --grey-50: #F5F5F5;
+  --grey-100: #E5E5E5;
+  --grey-200: #CCCCCC;
+  --grey-300: #AAAAAA;
+  --grey-400: #999999;
+  --grey-500: #666666;
+  --grey-600: #444444;
+  --grey-700: #333333;
+  --grey-800: #1A1A1A;
+  --background-primary: #FFFFFF;
+  --surface-for-green: #F0FFFF;
+  --surface-for-orange: #FFF9F4;
+  --surface-for-blue: #F4FBFF;
+  --surface-for-red: #FFF4F4;
+  --dd-purple: #632CA6;
+
+  /* card 面。直書きの #fff を token にして dark mode で反転できるようにする */
+  --surface-card: #FFFFFF;
+  --border: #E0E0E0;
+  --border-soft: #EDEDED;
+  /* code block の面。ramp を反転しても暗いままにする */
+  --surface-code: #09090B;
+
+  /* 角丸と影の段階 */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.06);
+
+  --font-sans: "Inter", "Zen Kaku Gothic New", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  --font-mono: "SF Mono", Menlo, monospace;
+
+  /* 本文の行長。表と code は絞らず全幅のまま使う */
+  --measure: 800px;
+}
+
+
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--grey-800);
+  background: var(--grey-50);
+  margin: 0;
+  padding: 24px 16px 80px;
+}
+
+/* 素の h1 fallback (hero にも container > h1:first-child にも該当しないケース) */
+h1 { font-size: 28px; line-height: 1.3; letter-spacing: -0.01em; margin: 0 0 16px; color: var(--grey-800); }
+
+strong, b { font-weight: 600; color: var(--grey-800); }
+em, i { font-style: italic; }
+
+.container { max-width: 1100px; margin: 0 auto; }
+
+/* hero */
+.hero {
+  background: var(--surface-card);
+  color: var(--grey-800);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 40px 32px;
+  margin-bottom: 24px;
+}
+.hero .tag {
+  display: inline-block;
+  background: var(--primary-soft);
+  color: var(--primary);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: .08em;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.hero h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 8px; color: var(--grey-800); border: none; }
+.hero p { font-size: 14px; line-height: 1.7; margin: 0; color: var(--grey-500); max-width: var(--measure); }
+
+/* body 直下に hero 不在の場合の h1 fallback */
+.container > h1:first-child {
+  background: var(--surface-card);
+  color: var(--grey-800);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px 28px;
+  margin: 0 0 24px;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* TOC */
+nav.toc, .toc {
+  background: var(--surface-card);
+  border: 1px solid var(--grey-100);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 32px;
+}
+nav.toc h2, .toc-title {
+  font-size: 14px;
+  color: var(--grey-500);
+  margin: 0 0 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border: none;
+  padding: 0;
+}
+nav.toc ol, .toc ol {
+  list-style: none;
+  counter-reset: toc;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+nav.toc li, .toc li { counter-increment: toc; display: flex; }
+nav.toc li a, .toc li a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  transition: background-color .12s ease, color .12s ease;
+  color: var(--grey-700);
+  text-decoration: none;
+  border: 1px solid var(--grey-100);
+  transition: all .15s;
+  width: 100%;
+  min-height: 48px;
+}
+nav.toc li a:hover, .toc li a:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+nav.toc li a::before, .toc li a::before {
+  content: counter(toc, decimal-leading-zero);
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 12px;
+}
+
+/* section */
+section {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+/* section h2 — num badge */
+section h2 {
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--grey-800);
+  border: none;
+  padding: 0;
+}
+section h2 .num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+section h3 {
+  font-size: 16px;
+  letter-spacing: -0.005em;
+  margin: 16px 0 8px;
+  color: var(--grey-700);
+}
+/* h4-h6 / p は構造非依存 (section 配下でも container 直下でも他の入れ子でも常に当たる) */
+h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 16px 0 8px;
+  color: var(--grey-700);
+}
+h5 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 12px 0 6px;
+  color: var(--grey-600);
+}
+h6 {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 12px 0 6px;
+  color: var(--grey-500);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+/* 本文 p (折り返し幅は card 幅に揃える。75ch 制限は table との幅差で改行位置が不揃いに見えるため廃止 2026-08-07) */
+li {
+  max-width: var(--measure);
+}
+p {
+  margin: 0 0 16px;
+  color: var(--grey-700);
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: var(--measure);
+}
+
+/* section .lead (h2 直後の導入文のみ。table 等の後に来る本文 p は対象外) */
+section .lead, section > h2 + p {
+  color: var(--grey-500);
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0 0 24px;
+  max-width: var(--measure);
+}
+
+/* body 直下の素の h2/h3/p */
+.container > h2 {
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  margin: 32px 0 16px;
+  color: var(--grey-800);
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--grey-100);
+}
+.container > h3 {
+  font-size: 16px;
+  margin: 24px 0 8px;
+  color: var(--grey-700);
+}
+
+/* Architecture diagram */
+.arch { display: grid; gap: 16px; }
+.arch-row { display: grid; gap: 12px; grid-template-columns: 1fr; }
+.arch-row.split-2 { grid-template-columns: 1fr 1fr; }
+.arch-row.split-3 { grid-template-columns: repeat(3, 1fr); }
+.node {
+  border: 2px solid var(--grey-200);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: var(--surface-card);
+  position: relative;
+}
+.node .label {
+  font-size: 11px;
+  color: var(--grey-500);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 4px;
+}
+.node .title { font-weight: 600; font-size: 14px; color: var(--grey-800); }
+.node .meta {
+  font-size: 12px;
+  color: var(--grey-500);
+  margin-top: 4px;
+  font-family: "SF Mono", Menlo, monospace;
+}
+.node.dd { border-color: var(--dd-purple); background: #FAF5FF; }
+.node.dd .label { color: var(--dd-purple); }
+.node.app { border-color: var(--primary); background: var(--surface-for-green); }
+.node.app .label { color: var(--primary); }
+.node.injection { border-color: var(--primary-orange); background: var(--surface-for-orange); }
+.node.injection .label { color: var(--primary-orange); }
+.node.external { border-style: dashed; border-color: var(--grey-300); }
+.arrow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--grey-400);
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* tables */
+/* .table-scroll は decorate script が全 table に付与する scroll container。
+   nowrap pill / 長い code path で幅超過しても page 全体を横に広げない */
+.table-scroll {
+  overflow-x: auto;
+  margin: 1em 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.table-scroll table tr:last-child td { border-bottom: none; }
+table tbody tr { transition: background-color .12s ease; }
+table tbody tr:hover { background: var(--grey-50); }
+.table-scroll > table { margin: 0; }
+table, table.decisions {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1em 0;
+}
+table thead, table.decisions thead { background: var(--primary-soft); }
+table th, table.decisions th {
+  background: var(--primary-soft);
+  padding: 0 20px;
+  height: 44px;
+  text-align: left;
+  border-bottom: 1px solid var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+table td, table.decisions td {
+  padding: 14px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 14px;
+  vertical-align: top;
+  color: var(--grey-700);
+}
+table tbody tr:hover { background: var(--grey-50); }
+
+/* inline code */
+code {
+  background: var(--grey-50);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  color: var(--dd-purple);
+}
+/* 行末で pill 背景ごと分断されないよう塊で折り返す (幅超過時のみ内部で折る)。pre 内は対象外 */
+:not(pre) > code { display: inline-block; }
+
+/* pill 4 variant */
+.pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+.pill.ok { background: var(--surface-for-green); color: var(--primary); }
+.pill.warn { background: var(--surface-for-orange); color: var(--primary-orange); }
+.pill.skip { background: var(--grey-50); color: var(--grey-500); }
+.pill.new { background: #EEF1FF; color: var(--link-blue); }
+.pill.mod { background: var(--surface-for-orange); color: var(--primary-orange); }
+
+/* files grid */
+.files-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+.file-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid var(--grey-100);
+  border-radius: 8px;
+  background: var(--surface-card);
+}
+.file-row code {
+  font-family: "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  color: var(--grey-700);
+  background: transparent;
+  padding: 0;
+  word-break: break-all;
+}
+.file-row .desc { font-size: 12px; color: var(--grey-500); margin-top: 4px; }
+
+/* timeline */
+.timeline { display: grid; gap: 16px; }
+.step {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 16px;
+  background: var(--surface-card);
+  border: 1px solid var(--grey-100);
+  border-left: 4px solid var(--primary);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+.step .num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 50%;
+  font-weight: 700;
+}
+.step .body h3 { font-size: 15px; margin: 0 0 6px; color: var(--grey-800); }
+.step .body p { font-size: 13px; color: var(--grey-600); margin: 0 0 6px; max-width: none; }
+.step .body .touch { font-size: 11px; color: var(--grey-500); }
+.step .body .touch code {
+  background: var(--grey-50);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--grey-700);
+}
+
+/* code block (light / dark どちらでも暗い面を保つ) */
+pre {
+  background: var(--surface-code);
+  color: #E4E4E7;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-family: "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 12px 0;
+}
+pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+pre .k { color: #FF9D6F; }
+pre .s { color: #A8E5A8; }
+pre .c { color: var(--grey-400); font-style: italic; }
+pre .t { color: #7DD3FC; }
+pre .f { color: #FDE68A; }
+pre .n { color: #C4B5FD; }
+
+/* verify (check list) */
+.verify { display: grid; gap: 8px; list-style: none; padding: 0; margin: 0; }
+.verify li {
+  padding: 10px 14px;
+  background: var(--surface-for-blue);
+  border-left: 3px solid var(--link-blue);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--grey-700);
+  list-style: none;
+}
+.verify li::before { content: "✓ "; color: var(--link-blue); font-weight: 700; }
+
+/* non-scope */
+.nonscope { list-style: none; padding: 0; margin: 0; }
+.nonscope li {
+  padding: 8px 14px;
+  background: var(--grey-50);
+  border-left: 3px solid var(--grey-300);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--grey-500);
+  margin-bottom: 6px;
+  list-style: none;
+}
+.nonscope li::before { content: "− "; color: var(--grey-400); }
+
+/* blockquote */
+blockquote {
+  border-left: 4px solid var(--grey-300);
+  padding: 0.6em 1em;
+  margin: 1em 0;
+  color: var(--grey-600);
+  background: var(--grey-50);
+  border-radius: 0 6px 6px 0;
+}
+
+/* link */
+a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: color-mix(in srgb, var(--primary) 35%, transparent);
+  transition: color .12s ease, text-decoration-color .12s ease;
+}
+a:hover { text-decoration-color: var(--primary); }
+
+/* ul / ol */
+ul, ol { padding-left: 1.6em; margin: 1em 0; }
+li { margin: 0.3em 0; }
+
+/* hr */
+hr { border: 0; border-top: 1px solid var(--grey-100); margin: 2em 0; }
+
+/* footer */
+footer {
+  text-align: center;
+  color: var(--grey-400);
+  font-size: 12px;
+  margin-top: 40px;
+}
+
+/* heading anchor link */
+h1 .anchor-link, h2 .anchor-link, h3 .anchor-link, h4 .anchor-link, h5 .anchor-link, h6 .anchor-link {
+  opacity: 0;
+  transition: opacity 0.15s;
+  color: var(--grey-400);
+  text-decoration: none;
+  margin-left: 0.4em;
+  font-weight: normal;
+  font-size: 0.85em;
+  font-family: "SF Mono", Menlo, monospace;
+}
+h1:hover .anchor-link, h2:hover .anchor-link, h3:hover .anchor-link,
+h4:hover .anchor-link, h5:hover .anchor-link, h6:hover .anchor-link { opacity: 0.6; }
+.anchor-link:hover { opacity: 1 !important; color: var(--primary); }
+
+/* responsive */
+@media (max-width: 700px) {
+  .arch-row.split-2, .arch-row.split-3 { grid-template-columns: 1fr; }
+  .file-row { grid-template-columns: 1fr; }
+  section { padding: 20px; }
+  body { padding: 16px 8px 60px; }
+}
+
+/* --- v4.2: breadcrumb --- */
+nav.doc-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--grey-500);
+  margin: 0 0 16px;
+  font-family: "SF Mono", Menlo, monospace;
+  letter-spacing: .02em;
+}
+nav.doc-breadcrumb a {
+  color: var(--link-blue);
+  text-decoration: none;
+}
+nav.doc-breadcrumb a:hover { text-decoration: underline; }
+nav.doc-breadcrumb .doc-breadcrumb-sep {
+  color: var(--grey-300);
+  user-select: none;
+}
+nav.doc-breadcrumb .doc-breadcrumb-current {
+  color: var(--grey-700);
+  font-weight: 600;
+}
+
+/* --- v4.2: 文中 navigation --- */
+/* floating buttons (右下固定): TOC toggle + top 戻る */
+.doc-fab-group {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+}
+.doc-fab {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  border: 1px solid var(--grey-200);
+  background: var(--surface-card);
+  color: var(--grey-700);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  transition: background .15s, color .15s, transform .15s, opacity .2s;
+  padding: 0;
+}
+.doc-fab:hover { background: var(--primary-soft); color: var(--primary); }
+.doc-fab:active { transform: scale(.96); }
+.doc-fab[hidden] { display: none !important; }
+.doc-fab.is-hidden { opacity: 0; pointer-events: none; }
+.doc-fab svg { width: 20px; height: 20px; stroke-width: 2; }
+
+/* TOC popover (幅狭画面用、TOC toggle で開閉) */
+.doc-toc-popover {
+  position: fixed;
+  right: 20px;
+  bottom: 76px;
+  width: min(320px, calc(100vw - 40px));
+  max-height: min(60vh, 480px);
+  overflow-y: auto;
+  background: var(--surface-card);
+  border: 1px solid var(--grey-200);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.10);
+  padding: 12px 16px;
+  z-index: 99;
+}
+.doc-toc-popover[hidden] { display: none !important; }
+.doc-toc-popover .doc-toc-title {
+  font-size: 12px;
+  color: var(--grey-500);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+.doc-toc-popover ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: dtoc;
+}
+.doc-toc-popover li { counter-increment: dtoc; }
+.doc-toc-popover a {
+  display: flex;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--grey-700);
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 1.4;
+  border-left: 3px solid transparent;
+}
+.doc-toc-popover a::before {
+  content: counter(dtoc, decimal-leading-zero);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.doc-toc-popover a:hover { background: var(--grey-50); }
+.doc-toc-popover a.is-active {
+  background: var(--primary-soft);
+  border-left-color: var(--primary);
+  color: var(--grey-800);
+  font-weight: 600;
+}
+
+/* 幅広画面 (≥1200px) 用 sticky sidebar TOC */
+@media (min-width: 1200px) {
+  body.doc-has-sidebar { padding-left: 280px; }
+  .doc-toc-sidebar {
+    position: fixed;
+    left: 16px;
+    top: 24px;
+    width: 248px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    font-size: 13px;
+  }
+  .doc-toc-sidebar .doc-toc-title {
+    font-size: 11px;
+    color: var(--grey-500);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+  }
+  .doc-toc-sidebar ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: stoc;
+  }
+  .doc-toc-sidebar li { counter-increment: stoc; }
+  .doc-toc-sidebar a {
+    display: flex;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    color: var(--grey-700);
+    text-decoration: none;
+    line-height: 1.4;
+    border-left: 3px solid transparent;
+  }
+  .doc-toc-sidebar a::before {
+    content: counter(stoc, decimal-leading-zero);
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .doc-toc-sidebar a:hover { background: var(--grey-50); }
+  .doc-toc-sidebar a.is-active {
+    background: var(--primary-soft);
+    border-left-color: var(--primary);
+    color: var(--grey-800);
+    font-weight: 600;
+  }
+  /* 幅広画面では TOC toggle FAB 不要 (sidebar 常時表示) */
+  body.doc-has-sidebar .doc-fab-toc,
+  body.doc-has-sidebar .doc-toc-popover { display: none !important; }
+}
+@media (max-width: 1199px) {
+  .doc-toc-sidebar { display: none !important; }
+}
+
+/* print */
+@media print {
+  body { background: #fff; padding: 0; }
+  section, nav.toc, .toc { box-shadow: none; border: 1px solid var(--grey-200); page-break-inside: avoid; }
+  .hero, .container > h1:first-child {
+    background: var(--grey-800) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .anchor-link { display: none; }
+  a { color: inherit; }
+  /* v4.2: 印刷時は sidebar / floating btn / popover / breadcrumb を非表示 (冒頭 nav.toc のみ残す) */
+  .doc-fab-group, .doc-toc-popover, .doc-toc-sidebar, nav.doc-breadcrumb { display: none !important; }
+  body.doc-has-sidebar { padding-left: 0 !important; }
+}
+
+/* focus */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+::selection {
+  background: var(--link-blue);
+  color: #FFFFFF;
+}
+
+/* 本文冒頭の目次カードは出さない (user 決定 2026-09-21)。
+   幅広画面は左の sticky TOC、幅狭画面は右下ボタンの TOC を使う */
+nav.toc, .toc { display: none; }
+</style>
+<style id="doc-local">
+/* PR/DD レビュー系 doc 向け: .qa リスト + ラベル chip。使わない doc では無害 (該当 class が出現したときだけ効く)。canonical 変数 (var(--primary-*)) 流用 */
+
+/* ラベル chip (凡例 / 各 li head) */
+.lbl {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  line-height: 1;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.lbl-must    { background: var(--surface-for-orange); color: var(--primary-orange); border-color: rgba(255,131,45,.25); }
+.lbl-should  { background: #FFF4D6;                   color: #8B6914;               border-color: rgba(139,105,20,.25); }
+.lbl-imo     { background: #EEF1FF;                   color: var(--link-blue);      border-color: rgba(60,90,200,.20); }
+.lbl-nits    { background: var(--grey-100);           color: var(--grey-700);       border-color: var(--grey-300); }
+.lbl-ask     { background: #F0EAFF;                   color: #5524A0;               border-color: rgba(85,36,160,.20); }
+.lbl-discard { background: var(--grey-50);            color: var(--grey-500);       border-color: var(--grey-300); }
+
+/* .qa リスト本体 (timeline 風 grid) */
+ul.qa {
+  list-style: none;
+  margin: 16px 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+ul.qa > li {
+  background: #fff;
+  border: 1px solid var(--grey-200, #E8E8E8);
+  border-left: 4px solid var(--grey-300, #D4D4D4);
+  border-radius: 8px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+/* li の状態色 (左 border) */
+ul.qa > li.label-must     { border-left-color: var(--primary-orange); }
+ul.qa > li.label-should   { border-left-color: #8B6914; }
+ul.qa > li.label-imo      { border-left-color: var(--link-blue); }
+ul.qa > li.label-nits     { border-left-color: var(--grey-500); }
+ul.qa > li.label-ask      { border-left-color: #5524A0; }
+ul.qa > li.discarded,
+ul.qa > li.label-discard  { border-left-color: var(--grey-300); background: var(--grey-50); }
+/* 完了マーク (done = checkbox checked のもの) は緑寄せ */
+ul.qa > li.done {
+  border-left-color: var(--primary-green);
+  background: linear-gradient(0deg, var(--surface-for-green, #E5F5EE) 0%, #fff 60%);
+}
+
+/* qa-head: checkbox + lbl + 見出し横並び */
+.qa-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.qa-head input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-green);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.qa-head label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--grey-800, #2A2A2A);
+  cursor: pointer;
+  line-height: 1.5;
+  flex: 1 1 auto;
+}
+.qa-head label small {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--grey-500);
+  margin-left: 6px;
+}
+/* checked + .done のとき label に打ち消し線 */
+ul.qa > li.done .qa-head label,
+ul.qa > li.discarded .qa-head label {
+  text-decoration: line-through;
+  text-decoration-color: var(--grey-400, #B8B8B8);
+  color: var(--grey-600);
+}
+
+/* qa-body: 詳細 prose (head の下、左 padding でインデント) */
+.qa-body {
+  margin-top: 10px;
+  padding-left: 26px;
+  font-size: 13.5px;
+  color: var(--grey-700);
+  line-height: 1.7;
+}
+.qa-body p { margin: 6px 0; }
+.qa-body p:first-child { margin-top: 0; }
+.qa-body p:last-child { margin-bottom: 0; }
+.qa-body pre {
+  font-size: 12px;
+  margin: 8px 0;
+}
+.qa-body details {
+  margin: 8px 0;
+}
+.qa-body details summary {
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--link-blue);
+  font-weight: 500;
+  padding: 4px 0;
+}
+.qa-body details[open] summary {
+  margin-bottom: 6px;
+}
+.qa-body strong { color: var(--grey-800); }
+</style>
+</head>
+<body>
+<h1>{タイトル例: oripa 抽選 lock 戦略の選定}</h1>
+<p>{1行リード: 何の決定か / 採用案 1 行 / 読者は誰か}</p>
+
+<!-- AI: 概要テーブルは decision doc 必須。決定タイトル・採用案・適用範囲を先頭に示すと読者が判断材料を即取得できる -->
+<table>
+  <tr><th>決定タイトル</th><td>{決定対象 / 1 行}</td></tr>
+  <tr><th>採用案</th><td><strong>{採用した案名}</strong></td></tr>
+  <tr><th>適用範囲</th><td>{どの機能 / repo / 期間に適用されるか}</td></tr>
+  <tr><th>決定日</th><td>{YYYY-MM-DD}</td></tr>
+  <tr><th>ステータス</th><td><span class="pill ok">確定</span></td></tr>
+</table>
+
+<h2>1. 背景</h2>
+<p>{なぜこの決定が必要になったか / どの制約・期限・痛み点が起点か}</p>
+<!-- AI: 背景は「決定が必要になった具体的事象」を 2-4 行で書く。仮想的に書かず、起点 issue / incident / PRD を参照する -->
+<ul>
+  <li><strong>起点</strong>: {issue / PR / incident / PRD への link}</li>
+  <li><strong>制約</strong>: {期限 / 予算 / 既存実装 / 互換性などの動かない条件}</li>
+</ul>
+
+<h2>2. 検討した選択肢</h2>
+<!-- AI: 選択肢は 2-4 個。各案を short name + 1 行説明で並べる。後段の比較軸 table と整合させる -->
+<ul>
+  <li><strong>案 A: {short name}</strong> — {1 行説明}</li>
+  <li><strong>案 B: {short name}</strong> — {1 行説明}</li>
+  <li><strong>案 C: {short name}</strong> — {1 行説明} <span class="pill skip">参考</span></li>
+</ul>
+
+<h2>3. 比較軸</h2>
+<!-- AI: 比較軸は table で揃える。軸は 3-6 個 (実装コスト / 運用負荷 / パフォーマンス / 安全性 / 拡張性 / 既存整合) を用途に応じ選ぶ。pill ok / warn / skip で各案の評価を視覚化 -->
+<table>
+  <thead>
+    <tr><th>軸</th><th>案 A</th><th>案 B</th><th>案 C</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>実装コスト</td><td><span class="pill ok">低</span></td><td><span class="pill warn">中</span></td><td><span class="pill warn">高</span></td></tr>
+    <tr><td>運用負荷</td><td><span class="pill ok">小</span></td><td><span class="pill ok">小</span></td><td><span class="pill warn">大</span></td></tr>
+    <tr><td>パフォーマンス</td><td><span class="pill warn">中</span></td><td><span class="pill ok">高</span></td><td><span class="pill ok">高</span></td></tr>
+    <tr><td>安全性 / 整合性</td><td><span class="pill warn">中</span></td><td><span class="pill ok">高</span></td><td><span class="pill ok">高</span></td></tr>
+  </tbody>
+</table>
+
+<h2>4. 採用案</h2>
+<!-- AI: 採用案は 1 つ。採用理由 3 点を箇条書き、最重視した比較軸を明示する -->
+<p><strong>採用</strong>: <strong>{採用案名}</strong></p>
+<ul class="verify">
+  <li>{採用理由 1: 比較軸 X で他案を上回る点}</li>
+  <li>{採用理由 2: 制約 Y を満たす点}</li>
+  <li>{採用理由 3: 既存 ◯◯ との整合性が高い点}</li>
+</ul>
+
+<h2>5. 不採用理由</h2>
+<!-- AI: 不採用の案ごとに「却下した致命点」を 1-2 行で書く。後日見直しが起きた時の判断材料になる -->
+<ul class="nonscope">
+  <li><strong>案 B</strong>: {却下理由 / どの軸で詰んだか}</li>
+  <li><strong>案 C</strong>: {却下理由 / どの軸で詰んだか}</li>
+</ul>
+
+<h2>6. 影響範囲</h2>
+<!-- AI: 触る file / migration / 運用変更 / 監視追加を列挙する。実装着手前の見積りに使う -->
+<div class="files-grid">
+  <div class="file-row">
+    <code>{path/to/file_or_dir}</code>
+    <div>
+      <span class="pill mod">変更</span>
+      <div class="desc">{何を変えるか / 影響範囲}</div>
+    </div>
+  </div>
+  <div class="file-row">
+    <code>{migration / config / monitor 等}</code>
+    <div>
+      <span class="pill new">新規</span>
+      <div class="desc">{何を追加するか}</div>
+    </div>
+  </div>
+</div>
+
+<h2>7. 残課題</h2>
+<!-- AI: 採用案でも未解決の論点 / 後追い必要なフォロータスクを列挙する。なければ「なし」で OK -->
+<ul>
+  <li>{未解決の論点 / 追加調査が必要な範囲}</li>
+  <li>{後日の見直しトリガー (例: 負荷が ◯ rps を超えたら案 B 再検討)}</li>
+</ul>
+
+<h2>関連</h2>
+<ul>
+  <li>{起点 issue / PR / DesignDoc / PRD への link}</li>
+  <li>{採用案を実装した PR / migration 番号}</li>
+  <li>{関連する別 decision doc (例: 過去の同種の決定)}</li>
+</ul>
+<script id="local-docs-script">
+/* local-docs-decorate v4.2 */
+(function(){
+  if (window.__localDocsDecorated) return;
+  window.__localDocsDecorated = true;
+
+  // body 直下を .container でラップ (既存 .container があれば skip)
+  if (!document.querySelector('.container')) {
+    const container = document.createElement('div');
+    container.className = 'container';
+    const ignore = new Set(['SCRIPT', 'STYLE', 'LINK']);
+    const nodes = Array.from(document.body.childNodes);
+    nodes.forEach(n => {
+      if (n.nodeType === 1 && ignore.has(n.tagName)) return;
+      container.appendChild(n);
+    });
+    document.body.appendChild(container);
+  }
+  const container = document.querySelector('.container');
+
+  // heading slug id (先行定義 — Step B/C/D で使用)
+  function slugify(text) {
+    return text.toLowerCase()
+      .replace(/[^\p{L}\p{N}\s-]/gu, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .slice(0, 80) || 'section';
+  }
+
+  // --- Step A/B: hero 自動生成 ---
+  if (!container.querySelector('header.hero')) {
+    const h1 = container.querySelector(':scope > h1');
+    if (h1) {
+      // metadata comment 抽出 (NodeIterator 経由)
+      let typeVal = '', dateVal = '';
+      const iter = document.createNodeIterator(document, NodeFilter.SHOW_COMMENT);
+      let node;
+      while ((node = iter.nextNode())) {
+        const v = node.nodeValue || '';
+        const tm = v.match(/type:\s*([^\s]+)/);
+        const dm = v.match(/last-updated:\s*(\d{4}-\d{2}-\d{2})/);
+        if (tm) typeVal = tm[1].trim();
+        if (dm) dateVal = dm[1].trim();
+      }
+      if (!dateVal) {
+        const metaDate = document.querySelector('meta[name="last-updated"]');
+        if (metaDate) dateVal = metaDate.content;
+      }
+      // type 表示名変換
+      const TYPE_MAP = {
+        investigation: 'Investigation', postmortem: 'Postmortem', runbook: 'Runbook',
+        spec: 'Spec', guide: 'Guide', index: 'Index', log: 'Log'
+      };
+      const typeDisplay = typeVal
+        ? (TYPE_MAP[typeVal.toLowerCase()] || (typeVal.charAt(0).toUpperCase() + typeVal.slice(1)))
+        : '';
+      const tagText = typeDisplay && dateVal ? typeDisplay + ' · ' + dateVal
+        : typeDisplay ? typeDisplay
+        : dateVal ? 'Document · ' + dateVal
+        : 'Document';
+
+      // hero DOM 構築
+      const hero = document.createElement('header');
+      hero.className = 'hero';
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = tagText;
+      hero.appendChild(tag);
+
+      // h1 を hero 内に移動 (id 維持)
+      h1.parentNode.removeChild(h1);
+      const heroH1 = document.createElement('h1');
+      heroH1.textContent = h1.textContent.replace(/#\s*$/, '').trim();
+      if (h1.id) heroH1.id = h1.id;
+      hero.appendChild(heroH1);
+
+      // h1 直後の p があれば hero に移動
+      const containerChildren = Array.from(container.childNodes);
+      // container 先頭の p (まだ h1 削除済みなので先頭付近を探す)
+      const firstEl = container.firstElementChild;
+      if (firstEl && firstEl.tagName === 'P') {
+        firstEl.parentNode.removeChild(firstEl);
+        const heroP = document.createElement('p');
+        heroP.textContent = firstEl.textContent;
+        hero.appendChild(heroP);
+      }
+
+      // container 先頭に挿入
+      container.insertBefore(hero, container.firstChild);
+    }
+  }
+
+  // --- Step C: TOC 自動生成 ---
+  const h2s = Array.from(container.querySelectorAll(':scope > h2'));
+  if (h2s.length >= 3 && !container.querySelector('nav.toc, nav[class*="toc"], .toc')) {
+    // slug id 付与 (先に実施)
+    const usedForToc = new Set();
+    h2s.forEach(h => {
+      if (!h.id) {
+        let base = slugify(h.textContent || '');
+        let id = base, n = 1;
+        while (usedForToc.has(id)) id = base + '-' + (++n);
+        h.id = id;
+      }
+      usedForToc.add(h.id);
+    });
+
+    const nav = document.createElement('nav');
+    nav.className = 'toc';
+    const tocTitle = document.createElement('h2');
+    tocTitle.textContent = '目次';
+    nav.appendChild(tocTitle);
+    const ol = document.createElement('ol');
+    h2s.forEach(h => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      // anchor text から .num span テキストを除外
+      const numSpan = h.querySelector('.num');
+      a.textContent = numSpan
+        ? h.textContent.replace(numSpan.textContent, '').replace(/#\s*$/, '').trim()
+        : h.textContent.replace(/#\s*$/, '').trim();
+      a.href = '#' + h.id;
+      li.appendChild(a);
+      ol.appendChild(li);
+    });
+    nav.appendChild(ol);
+
+    // hero 直後 or container 先頭
+    const hero = container.querySelector('header.hero');
+    if (hero && hero.nextSibling) {
+      container.insertBefore(nav, hero.nextSibling);
+    } else {
+      container.insertBefore(nav, container.firstChild);
+    }
+  }
+
+  // --- Step D: section 自動 wrap ---
+  const directH2s = Array.from(container.children).filter(el => el.tagName === 'H2');
+  if (directH2s.length >= 1 && !container.querySelector(':scope > section')) {
+    directH2s.forEach((h2, idx) => {
+      const section = document.createElement('section');
+      // section id
+      section.id = h2.id || slugify(h2.textContent || '');
+      // num badge (anchor-link テキストを除いてカウント)
+      if (!h2.querySelector('.num')) {
+        const num = document.createElement('span');
+        num.className = 'num';
+        num.textContent = String(idx + 1);
+        h2.insertBefore(num, h2.firstChild);
+      }
+      // h2 を section に置き換え
+      h2.parentNode.insertBefore(section, h2);
+      section.appendChild(h2);
+      // 次の直接 h2 / hero / toc / footer まで sibling を section に移動
+      let next = section.nextSibling;
+      while (next) {
+        const isH2 = next.nodeType === 1 && next.tagName === 'H2';
+        const isStop = next.nodeType === 1 && (
+          next.tagName === 'FOOTER' ||
+          (next.tagName === 'HEADER' && next.classList.contains('hero')) ||
+          (next.tagName === 'NAV' && next.classList.contains('toc'))
+        );
+        if (isH2 || isStop) break;
+        const toMove = next;
+        next = next.nextSibling;
+        section.appendChild(toMove);
+      }
+      // h2 直後の p のみ lead 化 (table 等を挟んだ本文 p を誤って lead 化しない)
+      const firstP = section.querySelector(':scope > p');
+      if (firstP && !firstP.className && firstP.previousElementSibling?.tagName === 'H2') firstP.className = 'lead';
+    });
+  }
+
+  // --- Step E2: table scroll wrap (幅超過 table は page を横に広げず table 内で scroll する) ---
+  container.querySelectorAll('table').forEach(t => {
+    if (t.parentElement && t.parentElement.classList.contains('table-scroll')) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'table-scroll';
+    t.parentNode.insertBefore(wrap, t);
+    wrap.appendChild(t);
+  });
+
+  // --- Step F: heading anchor link ---
+  const usedAll = new Set();
+  container.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(h => {
+    if (h.querySelector('.anchor-link')) return;
+    if (!h.id) {
+      let base = slugify(h.textContent || '');
+      let id = base, n = 1;
+      while (usedAll.has(id)) id = base + '-' + (++n);
+      h.id = id;
+    }
+    usedAll.add(h.id);
+    const a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.className = 'anchor-link';
+    a.textContent = '#';
+    a.setAttribute('aria-label', 'Copy link to section');
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const url = location.origin + location.pathname + '#' + h.id;
+      if (navigator.clipboard) navigator.clipboard.writeText(url).catch(()=>{});
+      history.replaceState(null, '', '#' + h.id);
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    h.appendChild(a);
+  });
+
+  // --- Step G: 既存 section の num badge (手書き Ueta 構造向け) ---
+  // Step D で wrap 済みの section は idx ズレ回避のため全 section を再スキャン
+  document.querySelectorAll('section').forEach((sec, idx) => {
+    const h2 = sec.querySelector(':scope > h2');
+    if (h2 && !h2.querySelector('.num')) {
+      const num = document.createElement('span');
+      num.className = 'num';
+      num.textContent = String(idx + 1);
+      h2.insertBefore(num, h2.firstChild);
+    }
+  });
+
+  // --- Step B0 (v4.2): breadcrumb (serve mode のみ、file:// では skip、hero 直上に挿入) ---
+  // path 分割は location.pathname から取り、root は 'local-docs' 固定リンクにする。
+  // 中間セグメントは text (folder に index が無い前提で 404 回避)、末尾は current class 付与。
+  if ((location.protocol === 'http:' || location.protocol === 'https:') && !container.querySelector('nav.doc-breadcrumb')) {
+    const raw = decodeURIComponent(location.pathname).replace(/^\/+/, '').replace(/\.html?$/, '').replace(/\/README$/, '');
+    const segs = raw.split('/').filter(Boolean);
+    if (segs.length >= 1) {
+      const nav = document.createElement('nav');
+      nav.className = 'doc-breadcrumb';
+      nav.setAttribute('aria-label', 'パンくずリスト');
+      const rootLink = document.createElement('a');
+      rootLink.href = '/';
+      rootLink.textContent = 'local-docs';
+      nav.appendChild(rootLink);
+      segs.forEach((seg, i) => {
+        const sep = document.createElement('span');
+        sep.className = 'doc-breadcrumb-sep';
+        sep.textContent = '/';
+        nav.appendChild(sep);
+        const span = document.createElement('span');
+        if (i === segs.length - 1) span.className = 'doc-breadcrumb-current';
+        span.textContent = seg;
+        nav.appendChild(span);
+      });
+      // hero が居れば hero 直前、なければ container 先頭に挿入する
+      const hero = container.querySelector(':scope > header.hero');
+      if (hero) container.insertBefore(nav, hero);
+      else container.insertBefore(nav, container.firstChild);
+    }
+  }
+
+  // --- Step H (v4.2): 文中 navigation (floating btn + sticky sidebar + scrollspy) ---
+  // 対象 heading は container 直下 h2 + section > h2。3 件未満は overkill なので出さない。
+  const navHeadings = [];
+  container.querySelectorAll(':scope > h2, :scope > section > h2').forEach(h => {
+    if (!h.id) return;
+    navHeadings.push(h);
+  });
+  if (navHeadings.length >= 3) {
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const svgEl = (tag, attrs) => {
+      const el = document.createElementNS(SVG_NS, tag);
+      for (const k in attrs) el.setAttribute(k, attrs[k]);
+      return el;
+    };
+    const makeArrowIcon = () => {
+      const s = svgEl('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+      s.appendChild(svgEl('path', { d: 'M12 19V6' }));
+      s.appendChild(svgEl('path', { d: 'M5 12l7-6 7 6' }));
+      return s;
+    };
+    const makeMenuIcon = () => {
+      const s = svgEl('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+      s.appendChild(svgEl('path', { d: 'M3 6h13' }));
+      s.appendChild(svgEl('path', { d: 'M3 12h13' }));
+      s.appendChild(svgEl('path', { d: 'M3 18h13' }));
+      s.appendChild(svgEl('circle', { cx: '20', cy: '6', r: '1' }));
+      s.appendChild(svgEl('circle', { cx: '20', cy: '12', r: '1' }));
+      s.appendChild(svgEl('circle', { cx: '20', cy: '18', r: '1' }));
+      return s;
+    };
+    const mkFab = (cls, aria, iconFn) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'doc-fab ' + cls;
+      b.setAttribute('aria-label', aria);
+      b.title = aria;
+      b.appendChild(iconFn());
+      return b;
+    };
+    // FAB group (top 戻る + TOC toggle)
+    const fabGroup = document.createElement('div');
+    fabGroup.className = 'doc-fab-group';
+    const fabTop = mkFab('doc-fab-top is-hidden', '先頭へ戻る', makeArrowIcon);
+    fabTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    const fabToc = mkFab('doc-fab-toc', '目次を開く', makeMenuIcon);
+    fabGroup.appendChild(fabToc);
+    fabGroup.appendChild(fabTop);
+    document.body.appendChild(fabGroup);
+
+    // TOC 描画 helper (popover / sidebar 共通)
+    function renderTocList(container2) {
+      const title = document.createElement('div');
+      title.className = 'doc-toc-title';
+      title.textContent = '目次';
+      container2.appendChild(title);
+      const ol = document.createElement('ol');
+      navHeadings.forEach(h => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        const numSpan = h.querySelector('.num');
+        a.textContent = numSpan
+          ? h.textContent.replace(numSpan.textContent, '').replace(/#\s*$/, '').trim()
+          : h.textContent.replace(/#\s*$/, '').trim();
+        a.href = '#' + h.id;
+        a.dataset.tocTarget = h.id;
+        li.appendChild(a);
+        ol.appendChild(li);
+      });
+      container2.appendChild(ol);
+    }
+
+    // TOC popover (幅狭画面用)
+    const popover = document.createElement('div');
+    popover.className = 'doc-toc-popover';
+    popover.setAttribute('role', 'dialog');
+    popover.setAttribute('aria-label', '目次');
+    popover.hidden = true;
+    renderTocList(popover);
+    document.body.appendChild(popover);
+    fabToc.addEventListener('click', () => {
+      popover.hidden = !popover.hidden;
+      fabToc.setAttribute('aria-expanded', String(!popover.hidden));
+    });
+    popover.addEventListener('click', e => {
+      if (e.target.closest('a')) popover.hidden = true;
+    });
+    document.addEventListener('click', e => {
+      if (popover.hidden) return;
+      if (popover.contains(e.target) || fabToc.contains(e.target)) return;
+      popover.hidden = true;
+    });
+
+    // sticky sidebar (≥1200px 用)
+    const sidebar = document.createElement('aside');
+    sidebar.className = 'doc-toc-sidebar';
+    sidebar.setAttribute('aria-label', '目次');
+    renderTocList(sidebar);
+    document.body.appendChild(sidebar);
+    document.body.classList.add('doc-has-sidebar');
+
+    // 先頭付近で top FAB を hide
+    const updateTopFab = () => {
+      if (window.scrollY > 200) fabTop.classList.remove('is-hidden');
+      else fabTop.classList.add('is-hidden');
+    };
+    updateTopFab();
+    window.addEventListener('scroll', updateTopFab, { passive: true });
+
+    // scrollspy: 現在位置の heading を highlight
+    const tocLinks = Array.from(document.querySelectorAll('.doc-toc-popover a[data-toc-target], .doc-toc-sidebar a[data-toc-target]'));
+    const linkById = new Map();
+    tocLinks.forEach(a => {
+      const arr = linkById.get(a.dataset.tocTarget) || [];
+      arr.push(a);
+      linkById.set(a.dataset.tocTarget, arr);
+    });
+    let currentId = '';
+    const setActive = id => {
+      if (id === currentId) return;
+      currentId = id;
+      tocLinks.forEach(a => a.classList.remove('is-active'));
+      const arr = linkById.get(id);
+      if (arr) arr.forEach(a => {
+        a.classList.add('is-active');
+        if (a.closest('.doc-toc-sidebar')) {
+          const parent = a.closest('.doc-toc-sidebar');
+          const at = a.offsetTop, ah = a.offsetHeight;
+          if (at < parent.scrollTop || at + ah > parent.scrollTop + parent.clientHeight) {
+            parent.scrollTop = at - parent.clientHeight / 2 + ah / 2;
+          }
+        }
+      });
+    };
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(entries => {
+        const visible = entries.filter(e => e.isIntersecting).map(e => e.target);
+        if (!visible.length) return;
+        const closest = visible.reduce((a, b) => (a.getBoundingClientRect().top < b.getBoundingClientRect().top ? a : b));
+        setActive(closest.id);
+      }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+      navHeadings.forEach(h => io.observe(h));
+    }
+  }
+})();
+</script>
+</body>
+</html>

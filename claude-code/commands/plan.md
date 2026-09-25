@@ -4,9 +4,9 @@ argument-hint: "[--go] <task-or-scope>"
 description: 設計と planning — PO Agent 経由で戦略を組み立てる (read-only、`--go` は investigation を含まない plan だけ implementation まで連結する)
 ---
 
-## Boundary w/ `/spec-design`
+## Boundary w/ `/sdd-design`
 
-`/spec-design` = team-shared design decisions (12-section md / input: PRD or NL / direct Edit) vs `/plan` = impl phase breakdown decision (Phase 1/2/... + worktree / input: Design Doc or settled design / PO Agent). 大きい開発は `/spec-design` → `/spec-plan` を使い、`/plan` は極小と小さい開発で使う。Detail: `references/design-phase-flow.md` 「Route selection (3 track)」.
+`/sdd-design` = team-shared design decisions (12-section md / input: PRD or NL / direct Edit) vs `/plan` = impl phase breakdown decision (Phase 1/2/... + worktree / input: Design Doc or settled design / PO Agent). 大きい開発は `/sdd-design` → `/sdd-plan` を使い、`/plan` は極小と小さい開発で使う。Detail: `references/design-phase-flow.md` 「Route selection (3 track)」.
 
 ## Step 0: Auto-load guidelines (required)
 
@@ -58,6 +58,10 @@ Comparison table canonical: `commands/workflow.md` 「/workflow vs /flow」.
 Decision examples: review **only** → `/workflow review` / review→fix→push auto → `/flow --auto` / migrate N files → `/workflow migrate` / new feature (PO needed) → `/flow` / design majority-vote → `/workflow judge-panel` / discovery (unknown count) → `/workflow loop-until-dry`
 
 N formula (/flow): canonical = `references/PARALLEL-PATTERNS.md#critical-path-reduction-formula`. Refer to the canonical for LPT_makespan + overhead(N) and the 4-tier priority order for T_i estimation. Do not use the legacy shorthand `max(T_i) + 60s`; it is orders of magnitude off from overhead(N).
+
+### `--mode-only` (judgment without design)
+
+`/plan --mode-only <task>` は Step 2 の判定結果だけを 3 行 (Mode / 理由 / 実行) で返して停止する。設計と Phase 分解と plan file の保存は行わない。判定に沿ってそのまま実装へ進むときは `--mode-only` を付けないか `--go` を使う。
 
 ## Self-Review (required, 2-stage)
 

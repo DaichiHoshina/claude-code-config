@@ -26,8 +26,6 @@ description: Auto-load guidelines by tech stack, save tokens. Use when loading g
 | `package.json` + react dep | React |
 | `package.json` + typescript dep | TypeScript |
 | `go.mod` | Go |
-| `pyproject.toml` / `requirements.txt` / `Pipfile` | Python |
-| `Cargo.toml` | Rust |
 | `pubspec.yaml` | Dart/Flutter |
 | `.eslintrc*` / `eslint.config.*` | ESLint (TypeScript bonus) |
 | `*.tf` | Terraform |
@@ -36,7 +34,6 @@ description: Auto-load guidelines by tech stack, save tokens. Use when loading g
 | `kubernetes/` / `k8s/` | Kubernetes |
 | `package.json` + (express\|nest\|fastify\|koa) | Backend (Node) |
 | `go.mod` + (gin\|echo\|fiber\|chi) | Backend (Go) |
-| `requirements.txt` + (fastapi\|django\|flask) | Backend (Python) |
 
 ### Step 2: Load Guidelines (2-phase)
 
@@ -94,7 +91,7 @@ Basic: Resolve to `~/.claude/guidelines/<category>/<id>.md`. Category auto-detec
 - `operations` → `operations/monitoring-runbook.md`
 
 **Category detection**:
-- `typescript|golang|nextjs-react|tailwind|shadcn|python|rust|dart-flutter|eslint|go-test-stability|go-performance|go-concurrency` → `languages/`
+- `typescript|golang|nextjs-react|tailwind|shadcn|dart-flutter|eslint|go-test-stability|go-performance|go-concurrency` → `languages/`
 - `terraform` → `infrastructure/terraform.md`, `kubernetes` → `infrastructure/aws-eks.md`
 - `clean-architecture|ddd|async-job-patterns` → `design/`
 - `database-performance|mysql-performance|caching-strategies|distributed-transactions|observability-design|security-hardening|scalability-patterns|event-driven-architecture|multi-tenancy` → `backend/`

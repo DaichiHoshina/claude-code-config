@@ -224,7 +224,7 @@ _block_if_ai_jargon() {
   fi
 
   # additionalContext: category 別詳細 + source
-  ADDITIONAL_CONTEXT="以下のNG用語を修正して再実行してください。語だけを差し替えず、検出語を含む文を単位に書き直してください (置換候補は書き直しの方向を示すもので、貼り替える対象ではありません)。source: guidelines/writing/NG-DICTIONARY.md
+  ADDITIONAL_CONTEXT="以下のNG用語を修正して再実行してください。語だけを差し替えず、検出語を含む文を単位に書き換えてください (置換候補は書き換えの方向を示すもので、貼り替える対象ではありません)。source: guidelines/writing/NG-DICTIONARY.md
 ${_detail_lines}"
 
   # 各 block category の語 list も併記する (回避参考)。全語を並べると 435 語の category で
@@ -317,8 +317,8 @@ _chat_quality_check() {
   local text="$1"
   _CHAT_BLOCK_REASON=""
   _CHAT_WARN_MSG=""
-  # 文体の機械判定で応答を書き直すと、事実・時制・評価まで変わりうる。
-  # 既定では書き直しを求めず、検出結果を log に記録するだけにする。
+  # 文体の機械判定で応答を書き換えると、事実・時制・評価まで変わりうる。
+  # 既定では書き換えを求めず、検出結果を log に記録するだけにする。
   # log の verdict を block と別値にするのは、jp-quality-override-detect が block 行だけを override 判定に使うため
   local _jpq_enforce=0
   [[ "${JP_QUALITY_STYLE_ENFORCEMENT:-0}" == "1" ]] && _jpq_enforce=1
@@ -421,7 +421,7 @@ _chat_quality_check() {
     _cq_block_detail="${_cq_block_detail:+${_cq_block_detail}; }turn締め語文末: ${_cq_tail_hits} (言い切って終えず、次の行に実際の内容を続けて書く。加えて 'superpowers:verification-before-completion' skill の Iron Law に従い、宣言前に検証 command を実行した evidence を書き込む)"
   fi
   if [[ -n "$_cq_block_detail" ]]; then
-    _CHAT_BLOCK_REASON="chat 応答が plain JP 規範に反する: ${_cq_block_detail} — 直前の応答本文だけを規範に沿った開いた日本語に書き直して再送する。source: guidelines/writing/NG-DICTIONARY.md + guidelines/writing/PRINCIPLES.md"
+    _CHAT_BLOCK_REASON="chat 応答が plain JP 規範に反する: ${_cq_block_detail} — 直前の応答本文だけを規範に沿った開いた日本語に書き換えて再送する。source: guidelines/writing/NG-DICTIONARY.md + guidelines/writing/PRINCIPLES.md"
   fi
   local _cq_warn_out=""
   if [[ -n "$_cq_warn_terms" ]]; then
@@ -440,9 +440,9 @@ _chat_quality_check() {
     _cq_warn_out="${_cq_warn_out:+${_cq_warn_out}; }${_cq_struct_warn%; }"
   fi
   if [[ -n "$_cq_warn_out" ]]; then
-    _CHAT_WARN_MSG="${ICON_WARNING:-▲} chat 文体 warn: ${_cq_warn_out} — 次の応答は plain JP 規範 (guidelines/writing/PRINCIPLES.md) に沿って直す"
+    _CHAT_WARN_MSG="${ICON_WARNING:-▲} chat 文体 warn: ${_cq_warn_out} — 次の応答は plain JP 規範 (guidelines/writing/PRINCIPLES.md) に沿って書き換える"
   fi
-  # 遮断が無効なとき: log は残し、応答の書き直しも warn 通知も求めない
+  # 遮断が無効なとき: log は残し、応答の書き換えも warn 通知も求めない
   if [[ "$_jpq_enforce" -ne 1 ]]; then
     _CHAT_BLOCK_REASON=""
     _CHAT_WARN_MSG=""

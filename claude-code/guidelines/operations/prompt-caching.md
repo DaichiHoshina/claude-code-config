@@ -30,7 +30,7 @@ session が長くなると cache_read の累積コストが上昇し続ける。
 
 | パターン | 何が起きるか | 対処 |
 |---|---|---|
-| session 途中で CLAUDE.md を編集 | system prompt が変わり、それ以降の全ターンで cache miss | 編集後に `/clear` で session を切り直す |
+| session 途中で CLAUDE.md を編集 | system prompt が変わり、それ以降の全ターンで cache miss | 編集後に `/clear` で session を新しく開始する |
 | 大量の file を Read しながら会話を続ける | context が膨らみ cache 先頭が短くなる | Read を最小にし、必要な symbol だけ Serena で取得 |
 | TTL 超のアイドル後にそのまま続ける (1 時間延長設定なしなら 5 分超) | cache が失効しているため再構築コストが発生 | 長時間離席後は `/clear` を検討する |
 | 同一 session で複数タスクを連続実行 | タスクごとに context が蓄積し cache_read が肥大化 | タスク完了後に `/clear` でリセットする |

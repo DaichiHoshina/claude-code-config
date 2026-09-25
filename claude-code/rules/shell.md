@@ -24,7 +24,7 @@ paths:
 
 ## 失敗パターンカタログ
 
-hooks/ の bash 編集で繰り返し踏む誤りやすい点を 10 件まとめる。shellcheck が検出できる項目も多いが、warn を無視する前にこの表で正しい一手を確認する。
+hooks/ の bash 編集で繰り返し踏む誤りやすい点を 23 件まとめる。shellcheck が検出できる項目も多いが、warn を無視する前にこの表で正しい一手を確認する。
 
 | 症状 | ありがちな誤り | 正しい一手 |
 |---|---|---|
@@ -42,6 +42,7 @@ hooks/ の bash 編集で繰り返し踏む誤りやすい点を 10 件まとめ
 | set -e 下で `saved=$(shopt -p <opt>)` が無言で script を止める | `shopt -p` の exit code は option の有効・無効を表し、off なら 1 を返す。状態の保存のつもりが停止条件になる | `saved=$(shopt -p <opt> \|\| true)` と書き、復元は `eval "$saved"` |
 | `[[ =~ ]]` の literal regex が silent に壊れる | shell quoting が pattern を別物に変え capture が常に空になる (見た目は動作する) | `re="..."; [[ $str =~ $re ]]` と変数経由で渡す。検出: `grep -rEn "=~ ['\"]"` |
 | `find -printf` が macOS で空出力 | GNU 拡張を BSD find が error なしで無視する | `-exec basename {} \;` か `-print` で書く。count は bash glob (`files=(*.md); ${#files[@]}`) が fork 0 で最適 |
+| process substitution の入力を 2 回読んで 2 回目が空になる | `grep -f <(...)` を loop の中で複数回起動し、同じ term list を毎回読めると思い込む | 入力を `mktemp` で file へ書き出して path を渡す。pipe は 1 回で終わり、2 回目は「探す語が無い」として exit 0 で素通りする |
 | awk のマルチバイト RS / 否定クラスが誤動作 | BSD awk は `RS="。"` で分割せず、`[^」]` も byte 単位解釈で日本語 match が途切れる | `sed 's/。/\'$'\n''/g'` で行化してから行処理し、括弧対応は regex でなく `index()` で判定する |
 | timestamp filter が常に true | epoch の単位 (s / ms) を確認せず `now` と比較する | `head -1 \| jq '.<field>'` で桁数を確認してから式を記述する (10 桁 = s / 13 桁 = ms、ms は `(now - X) * 1000` で単位を合わせる) |
 | symlink 配置 script の path 解決 bug を見逃す | target 直実行で検証し `BASH_SOURCE` の解決経路差を踏まない | 検証は必ず symlink 経由 (`.git/hooks/pre-push` 等) で実行し、`readlink` loop で絶対 path に解決する |

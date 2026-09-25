@@ -25,7 +25,7 @@
 
 ## Golden workflow
 
-- 実行 mode 判定 → `/plan` (inline / /dev / /workflow / /flow N=<n> / /flow --auto / /goal / /loop。7 択の判定表と /workflow 下位 7 template は `commands/plan.md` Step 2 が canonical)。plan → 実装は Next command block (`/dev --plan <file>` 等)、`/plan --go` は判定 mode のまま continue する。mode 判定のみなら `/mode <task>`
+- 実行 mode 判定 → `/plan` (inline / /dev / /workflow / /flow N=<n> / /flow --auto / /goal / /loop。7 択の判定表と /workflow 下位 7 template は `commands/plan.md` Step 2 が canonical)。plan → 実装は Next command block (`/dev --plan <file>` 等)、`/plan --go` は判定 mode のまま continue する。mode 判定のみなら `/plan --mode-only <task>`
 - commit + push + PR → `/git-push --pr` (`pushして` でも発火)
 - 全 command / skill の見取り図 (幹 + 3 根の tree) → `references/command-tree.md`
 
@@ -38,9 +38,9 @@
 - 矛盾したら repo 側が「repo 固有規範 (命名 / 配置 / nullable / test 作法)」、ai-tools 側が「一般論」で棲み分ける (canonical: `<ghq-root>/CLAUDE.md` 「repo 管理 claude / AI 設定の読み分け」)
 - memory file (`<repo-root>/memory/`、`<ghq-root>/<repo>/memory/`) は Read OK。repo 配下 code / config edit は repo の方針に従う
 
-補足: user 決定 2026-08-28 と同日に settings の `claudeMdExcludes` (Claude Code に読ませない除外 list) から repo CLAUDE.md / `.claude/rules` を外して、文書 SoT 化とそろえた。
+補足: user 決定 2026-08-28 と同日に settings の `claudeMdExcludes` (Claude Code に読ませない除外 list) から repo CLAUDE.md / `.claude/rules` を対象外にして、文書 SoT 化とそろえた。
 
-- repo の hooks / `settings.json` は Claude Code が既に実行しているので「読むな」では止まらない。方針は禁止でなく観測とし、挙動悪化を感じたら `scripts/hook-bench.sh --log` で global / repo を切り分け、直すなら repo へ PR 文案を出す
+- repo の hooks / `settings.json` は Claude Code が既に実行しているので「読むな」では止まらない。方針は禁止でなく観測とし、挙動悪化を感じたら `scripts/hook-bench.sh --log` で global / repo を切り分け、修正するなら repo へ PR 文案を出す
 - repo 配下 `.claude/**` への write / edit は全 file 禁止 (hook / deny rule に block された write を別 tool で迂回しない)。生成物でなく正本が置かれる repo では、正本への PR 文案までとする
 
 **digest memory の保持方針**: repo ごとの digest memory は規範の複製でなく「領域 → 読む file の索引 + repo rules に無い暗黙知 + ai-tools との矛盾点」だけで構成する。例は product repo の `<repo>-claude-dir-digest` (索引) + `<repo>-guideline-gap` (ai-tools 理想形との差分) だ。既存 file 修正は gap file + 周辺 code、新規作成は auto-load された rules + 索引の workflow に従い、迷ったら参照実装を pinpoint Read する (Serena `find_symbol` 等)。一般論 (文体 / 思考原則 / delegation 等) は常に ai-tools 側が正で、digest 未整備 project は初回に同 pattern (索引形式) で作る。
@@ -54,7 +54,7 @@ Serena MCP connect 済 project では、**session 内で最初のコード関連
 **編集 tool の優先順位**: Serena の instruction が禁じるのは built-in の Read / Edit で、Bash 経由の編集 (sed / heredoc / 短い script) は対象外。symbol を丸ごと差し替えるときは Serena の editing tool を使う。
 
 - **Bash 経由の一括置換の可否**: `sed` / `python` で file を直接書く方式は **ai-tools repo に限る** (user 決定 2026-09-11)。Bash の書き込みは harness を経由しないため Write / Edit 向け hook (辞書検査 / guard) が内容に対して動かない (`bashEditDiffEnabled: true` を settings に入れているので diff は tool result に出るが、hook 判定は走らない)。ai-tools 以外の repo では、数行の差し替えも同一 pattern の一括置換も Edit tool (Serena 接続 project なら Serena の `replace_content` / `replace_in_files`) で行う。built-in Edit は Serena 未接続 project と、Serena が ignore する `claude-code/` 配下 (詳細: `references/on-demand-rules/serena-pitfalls.md`) に限って使う
-- **worktree 切替不可の対処**: Serena の active project は session の起動 dir で決まり、session 内で切り替える手段が無い (2026-09-16 実踏)。起動した worktree の外にある file も built-in の Read / Edit を使う対象に含める。編集が数 file を超えるなら、その worktree で session を開き直すと permission scope も Serena の scope もそろう
+- **worktree 切替不可の対処**: Serena の active project は session の起動 dir で決まり、session 内で切り替える手段が無い (2026-09-16 実踏)。起動した worktree の外にある file も built-in の Read / Edit を使う対象に含める。編集が数 file を超えるなら、その worktree で session を新規に開くと permission scope も Serena の scope もそろう
 
 ## Discovery / Investigation Routing (anti-overuse)
 
@@ -99,7 +99,7 @@ task 着手前に「独立 scope の数 N」を数え、下記 table を厳守�
 
 ## Tool Call Format (生テキスト呼び出し禁止)
 
-tool 呼び出しは harness の正規 function-call 機構のみで行い、応答本文に `<invoke>` 等の XML をテキストとして書かない。malformed 連発時は即停止してやり直す。delegation (Task 委譲) 文脈で特に誘発されやすい。`hooks/stop.sh` の raw XML guard は turn 終了後の最終防衛で、turn 中の連続生成は止められないため一次防御は応答生成側だ。
+tool 呼び出しは harness の正規 function-call 機構のみで行い、応答本文に `<invoke>` 等の XML をテキストとして書かない。malformed 連発時は即停止して再実行する。delegation (Task 委譲) 文脈で特に誘発されやすい。`hooks/stop.sh` の raw XML guard は turn 終了後の最終防衛で、turn 中の連続生成は止められないため一次防御は応答生成側だ。
 
 ## Collaboration stance (AI = 思考パートナー)
 
@@ -127,7 +127,7 @@ canonical は `rules/public-repo-private-data-block.md` (`paths: **/*` で常時
 
 詳細: `references/work-output-routing.md`
 
-## Natural Language Triggers (top 5)
+## Natural Language Triggers (常時掲載)
 
 | Input | Action |
 |---|---|
@@ -136,8 +136,23 @@ canonical は `rules/public-repo-private-data-block.md` (`paths: **/*` で常時
 | "レビュー" / "レビューして" | `/review` |
 | "team で" / "agent team で" / "分担で" / "本格的に" | `/flow` (PO/Manager/Dev hierarchy, forced) |
 | "並列実行で" / "wt 分けて" / "worktree 分けて" / "Developer 並列で" | `/flow --parallel` |
+| "リファクタ" / "リファクタリング" / "構造改善" | `/refactor` |
+| "動作確認して" / "verify して" | `/verify-once` |
+| "ブラッシュアップして" / "磨き込んで" | `/brushup <target>` |
+| "エラーが出ている" / "原因を調べて" / "debug して" | `/diagnose` |
+| "TDD で" / "テスト先に書いて" | `/test --tdd` |
+| "全体像把握して" / "issue 読んで整理して" / "タスク理解して" | `/prepare` |
+| "PRD 書いて" / "要件整理して" | `/prd` |
+| "plan して" / "設計と実装計画" / "phase 分けて" | `/plan` |
+| "design doc 書いて" / "DD 起こして" / "設計書書いて" | `/sdd-design` |
+| "作業計画書作って" / "作業計画書に分けて" / "PR 構成決めて" | `/sdd-plan` |
+| "詳細設計して" / "Phase n の実装方法を決めて" | `/sdd-phase-design --phase <n>` |
+| "Phase n 実装して" / "作業計画書通りに実装" | `/sdd-implement --phase <n>` |
+| "Phase をレビューして" / "作業計画書と突き合わせてレビュー" | `/sdd-review --phase <n>` |
 
-全 list: `references/natural-language-triggers.md`
+全 list: `references/natural-language-triggers.md`。この表に載せた trigger だけが session に常時載る。reference 側にしか書かれていない trigger は発火しないので、使いたい trigger はこの表へ行を追加する
+
+表を編集したら、sync 後に scratchpad を cwd にした `claude -p --max-turns 1` で新しい session に「この依頼文で起動する command と、表に行があるか」を答えさせて確かめる (実行はさせない)。表に無い言い方を 1 つ混ぜ、「表なし」と答え分けることも確かめる
 
 ## Worktree-first 作業 (user 決定 2026-07-19)
 
@@ -164,7 +179,7 @@ Apply relevant items only. Scale by change size (typo → #6 / new feature → a
 
 **repo 全体の評価では、読み取りに加えて CI と同じ command で依存導入と build と test を 1 回走らせる**。`npm ci` を `npm install` で代替しない (lockfile 不整合を検出できない)。読むだけでは `.gitignore` の 1 行による build 破損、lockfile 不整合、`.env.example` の除外を指摘できず、評価の後で修正に入って初めて 3 件とも出た (2026-09-21 実踏)。時間がかかるものは `run_in_background` で並行させる。走らせられないときは評価に「未実行」と明記する。
 
-**変更した対象の名前で `tests/` を grep して、hit した test file を全部実行する**。関数を変えたら関数名で、doc や設定 file を編集したら file 名で探す。変更 file 直下の test だけ実行して green と判定すると、旧挙動を assert する別 file の fail を見落とす (3 回実踏)。doc にも contract test が張られていることがあり、file 名の逆引きを省いて規範へ字数指標を書き戻し、test を壊したまま push した (2026-09-01 実踏)。full suite が重い repo では、この逆引き 1 手で代替する。
+**変更した対象の名前で `tests/` を grep して、hit した test file を全部実行する**。関数を変えたら関数名で、doc や設定 file を編集したら file 名で探す。鍵は変更の種類で変わる。文字列を書き換えたなら書き換える前の文字列で、file を新設したなら置いた dir の契約 test (`references/` なら INDEX 登録、`commands/` なら command-tree 登録) で引く。file 名だけで引くと、同じ文字列を assert する別 file と、dir 単位の契約を見る test の両方を落とす (2026-09-21 に同 session で 2 回実踏)。変更 file 直下の test だけ実行して green と判定すると、旧挙動を assert する別 file の fail を見落とす (3 回実踏)。doc にも contract test が張られていることがあり、file 名の逆引きを省いて規範へ字数指標を書き戻し、test を壊したまま push した (2026-09-01 実踏)。full suite が重い repo では、この逆引き 1 手で代替する。
 
 **guard / retry / 分岐条件の test を新設・変更したときは、対象の条件を 1 箇所壊して該当 test が fail することを確かめ、元に戻してから green を報告する** (mutation check)。stub の組み方や assert の緩さで、条件を消しても成功する test は簡単にできる。壊す対象は test が主張の中心に据える条件 1 つで足りる。壊す値は条件が確実に偽になるものを採用する。閾値を少し緩める程度の改変は、fixture が極端な値 (6 年前の mtime 等) を使っていると検出されず、対象が無いまま終わる。壊しても全 pass だったときは、test が緩いと判定する前に mutation 自体が有効になっていない可能性を先に否定する (2026-08-23 実踏)。
 
@@ -174,7 +189,7 @@ Structural fix over symptomatic (Reproduce → identify → design → verify)�
 
 ## Compounding Engineering
 
-Misbehavior / non-obvious success は即 document して次 session で auto-avoid する。memory write は `/memory-save` 経由のみで、宛先は project 階層 CLAUDE.md 宣言の auto-memory dir、宣言なしは `<repo-root>/memory/`。**Serena `write_memory` / `onboarding` / `edit_memory` は全 project 禁止** (`.serena/memories/` は read のみ)。**automation infra (cron / hook / rule / skill) の追加は既存分を 1 か月以上実測してから判断し、実測ゼロなら「追加しない」を default にする**。規則の不足は手順 / 判定 script / episodes / repo 先例に振り分けて直し、本文に日付注記を追加しない (`compounding-engineering-cycle.md` 「Step」 3)。詳細: `references/compounding-engineering-cycle.md`
+Misbehavior / non-obvious success は即 document して次 session で auto-avoid する。memory write は `/memory-save` 経由のみで、宛先は project 階層 CLAUDE.md 宣言の auto-memory dir、宣言なしは `<repo-root>/memory/`。**Serena `write_memory` / `onboarding` / `edit_memory` は全 project 禁止** (`.serena/memories/` は read のみ)。**automation infra (cron / hook / rule / skill / command の chain 登録) の追加は既存分を 1 か月以上実測してから判断し、実測ゼロなら「追加しない」を default にする**。規則の不足は手順 / 判定 script / episodes / repo 先例に振り分けて直し、本文に日付注記を追加しない (`compounding-engineering-cycle.md` 「Step」 3)。詳細: `references/compounding-engineering-cycle.md`
 
 ## Writing
 
@@ -184,7 +199,7 @@ Misbehavior / non-obvious success は即 document して次 session で auto-avo
 - **chat は敬体** (です・ます)。この file や rules の常体は設定記法で chat の手本にしない
 - **記述対象の使い分け**: code = How / test = What / commit log = Why / code comment = Why not。commit 本文は `guidelines/writing/commit-message.md`、comment は `guidelines/writing/code-comment.md`
 - **書き直し tool**: 種別 guideline は `guidelines/writing/README.md` を on-demand で 1 本 Read。深い書き直しは `/jp-fix`、後追い検査は `/jp-lint`、strict lint は `~/.claude/scripts/jp-quality-lint.sh --strict`
-- **chat 応答の頻出違反 top** (`~/.claude/logs/jp-quality-block.log` から実測、送信前に自分の応答を検算する): `残って` `を見て` `残る` `残す` `を足す` `を見る` `済み` `要る` `を足し` `追従` `を持つ` `持つ` `を出す` `出る` `完了` `矢印チェーン (→)` `文末 ます 3 連続`。log 側は日々変わるので、頻繁に block を踏むと感じたら実測を取り直す
+- **chat 応答の頻出違反 top** (`~/.claude/logs/jp-quality-block.log` の直近 14 日を実測、送信前に自分の応答を検算する): `残って` `が落ち` `崩れ` `残る` `を足し` `要る` `を足す` `を書く` `に載` `要り` `を見て` `漏れ` `通る` `出て` `持つ` `残す` `出る`。構造系は `矢印チェーン (→)` `turn 締め語の 済み` `文末 ます 3 連続` の 3 つ。log 側は日々変わるので、頻繁に block を踏むと感じたら次の 1 行で再取得する (日付で絞るなら `$1 >= "2026-09-09"` の条件を加える): `awk -F' \\| ' '$4=="block" && $2=="chat"{print $3}' ~/.claude/logs/jp-quality-block.log | tr ',' '\n' | sed 's/^ *//;s/ *$//' | sort | uniq -c | sort -rn | head -20`
 
 優先順は canonical に従う。優先順: (1) `guidelines/writing/` → (2) `rules/` → (3) project template。project 優先の例外は lint / format / CI / license / 法務 footer。
 

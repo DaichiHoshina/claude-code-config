@@ -31,7 +31,7 @@ send_stop_notification() {
   # - session_id なし = bats fixture / 手動 smoke (実 event は必ず session_id を保持する)
   # - cursor_version あり = Claude Code 以外の editor (Cursor) が同 script を実行した場合
   #
-  # background_tasks に running がある Stop を skip する条件は 2026-08-22 に外した。
+  # background_tasks に running がある Stop を skip する条件は 2026-08-22 に無効化した。
   # 「task 完了後の再開 turn で改めて鳴る」前提で入れていたが、実測すると Stop はその
   # 時点で 1 回しか飛ばず、user へ制御が戻る瞬間だけ出力が無くなっていた。running かどうかに
   # 関わらず Stop = user の入力待ちなので鳴らす

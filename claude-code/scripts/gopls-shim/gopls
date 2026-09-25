@@ -4,7 +4,7 @@
 # ~/go/bin/gopls の置換は go install の upgrade で silently 元に戻るため、
 # MCP 登録 env の PATH 先頭にこの dir を置く経路を採る。
 # listen timeout を既定 1 分から延ばすのは、session を閉じるたび daemon が落ちて
-# 次 session が index を払い直すのを避けるため。
+# 次 session が index を再構築するのを避けるため。
 set -euo pipefail
 
 GOPLS_BIN="${GOPLS_SHIM_TARGET:-${HOME}/go/bin/gopls}"

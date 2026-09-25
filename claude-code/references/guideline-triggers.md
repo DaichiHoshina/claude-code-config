@@ -32,8 +32,6 @@ Referenced by `load-guidelines` skill when subtopic triggers fire. When the foll
 | goroutine, GOMAXPROCS, scheduler, channel buffer, leak, mutex contention, race condition | `~/.claude/guidelines/languages/go-concurrency.md` |
 | go.mod の go directive 更新, Go 1.26 / 1.27, 新 idiom, modernize, go fix, slices / maps / iter への置換, encoding/json/v2, GODEBUG | `~/.claude/guidelines/languages/go-modern-idioms.md` |
 | Dart, Flutter, Widget, pubspec, Riverpod, BLoC | `~/.claude/guidelines/languages/dart-flutter.md` |
-| Python, pytest, pip, pyproject, mypy, ruff, venv, uv | `~/.claude/guidelines/languages/python.md` |
-| Rust, cargo, Cargo.toml, borrow checker, clippy, unsafe | `~/.claude/guidelines/languages/rust.md` |
 
 ## Common subtopics
 

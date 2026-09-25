@@ -14,6 +14,7 @@ user が Esc (interrupt) した操作を同 session で explicit approval なし
 
 - interrupt 後は理由を確認するか、別 approach を提案する
 - 状態変更 (insert / update / delete / deploy) の auto retry を厳禁とする。error 起因の retry とは区別する
+- file を編集する Bash が interrupt されたとき、tool の結果が「書き込まれていない」と返しても書き込み済みのことがある (2026-09-24 実踏)。再開前に `git status --short` と `git diff` で実物を確かめ、予定と一致すれば採用し、違えば `git checkout --` で戻す
 
 ## merge 示唆発言 ≠ authorization
 
@@ -38,7 +39,7 @@ session の scope 外 repo を変更する task を AI 側が TODO として起�
 
 ## merge based chain (merge commit 5+) は rebase せず継続 merge で取り込む
 
-100+ commit の stacked PR chain で、各 branch が上流を `git merge origin/upstream` で取り込んだ history を含む場合、後から `git rebase upstream` で並べ直すと merge commit の親関係が壊れ、conflict と force-push の連鎖で history が破壊される。**継続 merge で取り込め**ば非破壊、force-push 不要で完了する。
+100+ commit の stacked PR chain で、各 branch が上流を `git merge origin/upstream` で取り込んだ history を含む場合、後から `git rebase upstream` で並べ替えると merge commit の親関係が壊れ、conflict と force-push の連鎖で history が破壊される。**継続 merge で取り込め**ば非破壊、force-push 不要で完了する。
 
 **Why**: 2026-07-15 の admin chain (7 branch、chain 内に merge commit 5-10 個ずつ) を Phase 2 で rebase する計画だったが、`git log` を確認したところ既に `Merge branch 'upstream' into current` が多数積まれていた。rebase すると (a) merge commit の線形化過程で 100+ conflict、(b) force-push が chain 全 branch に必要、(c) reviewer 側の追跡不能 (commit hash が全変わる)。代わりに `git merge origin/30472-admin-2 --no-edit` → `git push` を chain 順に実行した結果、conflict は 1 file の auto-merge 1 件のみで非破壊完了。
 
@@ -139,17 +140,17 @@ Datadog notebook 等、当該 session で作成していない外部共有 tool 
 - `git commit` の直後に `git log -1 --format=%H` で HEAD が進んだか確かめる。進んでいなければ commit は成立していない
 - 差分を移動された側の復旧は `git stash list --format="%gd %cs %s"` で時刻を見て自分の差分を特定し、`git stash apply <ref>` (pop でなく apply) で戻してから commit する
 
-## 同一 checkout を複数 session が触るとき、git add の直前に diff を読み直す
+## 同一 checkout を複数 session が触るとき、git add の直前に diff を再確認する
 
 同じ worktree を別 session (Cursor / 別 Claude) と並行して編集しているときは、`git add` の直前に `git diff <file>` を読み直し、自分が書いた hunk だけを stage する。`gofmt` / `go build` の検証と `git add` の間に作業ツリーが変わり得るので、検証時点の diff を add 時点の diff と同一視しない。
 
-**Why**: 2026-08-25 に同じ PR で 2 回起きた。1 回目は 2 行の型変更を commit するつもりが、別 session が同じ file に入れた comment 移動 hunk が一緒に commit された (`git reset --mixed` で戻して hunk 単位で stage し直した)。2 回目は 4 行の comment を書いて検証まで済ませた後、`git add` の直前に別 session が同じ箇所を 1 行版へ書き換えており、そちらが commit されて push まで通った。commit 後の `--stat` が「1 insertion」で気づいた。
+**Why**: 2026-08-25 に同じ PR で 2 回起きた。1 回目は 2 行の型変更を commit するつもりが、別 session が同じ file に入れた comment 移動 hunk が一緒に commit された (`git reset --mixed` で戻して hunk 単位で改めて stage した)。2 回目は 4 行の comment を書いて検証まで済ませた後、`git add` の直前に別 session が同じ箇所を 1 行版へ書き換えており、そちらが commit されて push まで通った。commit 後の `--stat` が「1 insertion」で気づいた。
 
 **How to apply**:
 
 - `git status` で自分の file 以外に M が無くても、同じ file 内に他 session の hunk が含まれ得る。`git add <file>` の前に `git diff <file>` を読み、自分の変更だけか確かめる
 - 含まれていたら `git diff -U0 <file>` から自分の hunk だけを patch に抜き、`git apply --cached --unidiff-zero` で stage する
-- commit 直後に `git show --stat` の行数が自分の編集と一致するか確かめる。ずれていたら push 前に `git reset --mixed HEAD~1` で組み直す
+- commit 直後に `git show --stat` の行数が自分の編集と一致するか確かめる。ずれていたら push 前に `git reset --mixed HEAD~1` で改めて構成する
 - 別 session の存在は cross-session message や、自分が書いていない commit (`Co-authored-by: Cursor` 等) が branch に増えていることで分かる
 
 ## 同一 checkout を複数 session が触るとき、commit 前に branch を、push 後に origin の先頭を確かめる
@@ -163,6 +164,17 @@ Datadog notebook 等、当該 session で作成していない外部共有 tool 
 - commit の前に `git branch --show-current` を同じ呼び出しで出力し、想定 branch (main か自分で切った worktree branch) と違えば止まる
 - push 後に `git log --oneline -1 origin/<branch>` の先頭が自分の commit hash になったのを見てから「push 済み」と書く。`-q` を付けるなら、この確認を同じ呼び出しに必ず入れる
 - 別 branch に積んでしまった commit は ai-tools なら `git checkout main && git merge --ff-only <branch>` で回収できる (他 repo は PR 経路)
+- **push 後に `git log <push 前の origin の SHA>..origin/<branch>` で実際に送った範囲を確かめる**。確認と push を別の呼び出しに分けても、その間に別 session が commit すると一緒に送られる (2026-09-21 実踏)。想定より多ければ force push で戻さず、内容と出所を確かめて user へ報告する
+
+## staged な file を `git checkout --` で戻さない (index から書き戻す)
+
+`git checkout -- <file>` の復元元は index であって HEAD ではない。`git add` した後に打つと、staging した内容をそのまま作業 tree へ書き戻すので、壊した状態が保持される。続けて `git reset` を打っても index が戻るだけで、作業 tree は壊れたままになる。
+
+mutation check (test の効き目を確かめるために対象を 1 箇所壊す) で踏みやすい。壊す → `git add` → 検証 → 戻す、の並びで `git checkout --` を使うと、戻したつもりの file が壊れたまま次の commit を待つ。
+
+- 復元は `git checkout HEAD -- <file>` を使う (`git restore --source=HEAD --staged --worktree <file>` も同じ)
+- 復元の後は `git status --short` が空であることを目で見る。test の再実行だけでは足りない
+- 「壊した後に green だった」を復元の証拠にしない。staged かどうかで走る guard を検証していると、unstage した時点で guard 自体が動かなくなり、対象が壊れたままでも exit 0 になる (2026-09-21 実踏。check-quality の contract 逆引きで観測した)
 
 ## 並列 worktree で git stash 禁止 (refs/stash が repo 共有)
 

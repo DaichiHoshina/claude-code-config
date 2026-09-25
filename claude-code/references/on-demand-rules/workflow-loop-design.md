@@ -28,7 +28,7 @@ loop-until-dry pattern (K round 連続で新規ゼロ = 停止) は `seen` set (
 
 ## 4. /loop の gate は「達成度 && 品質」2 段で組む
 
-`/loop` の gate を「test 数 ≥N」の数量条件にすると、maker が最安の pure helper test だけで N を満たして 1 iteration で完走扱いになる (2026-07-16 dashboard-tests loop 実踏)。「対象関数名が test から grep できる」参照網羅条件に締め直して 4 group 分回った。
+`/loop` の gate を「test 数 ≥N」の数量条件にすると、maker が最安の pure helper test だけで N を満たして 1 iteration で完走扱いになる (2026-07-16 dashboard-tests loop 実踏)。「対象関数名が test から grep できる」参照網羅条件に切り替えて 4 group 分回った。
 
 **Why**: gate は exit code しか見ず、maker は gate を満たす最短経路に収束する。数量・行数などの proxy 指標は「何をカバーしたか」を測れない。逆に「bats green」だけでも着手前から green で即終了する (達成度を測る条件が 1 つ必要だ)。
 
@@ -43,7 +43,7 @@ reviewer が「この fix でこの誤爆が減るはず」と prescribe した�
 
 **Why**: 2026-07-20 の rule-recall-surface Task 2 で発覚した。reviewer が「pattern を log field-3 に限定すれば bleed-through が減る」と prescribe。実 log は `連続漢字` warn と `完了` warn が同一 line に bundle されており、field 境界では分離できず 完了 count は 455 → 455 で変わらなかった。fix subagent が独立 pipeline で before/after を測って初めて発覚した。
 
-**How to apply**: fix subagent の dispatch prompt に「fix 前後の実測値を独立 pipeline で cross-check する」を必ず入れる。集計 command の shape は fix と別 form を採用する。期待した差分が現れないなら DONE_WITH_CONCERNS で報告する。before/after が同値なら fix の前提を見直す。
+**How to apply**: fix subagent の dispatch prompt に「fix 前後の実測値を独立 pipeline で cross-check する」を必ず入れる。集計 command の shape は fix と別 form を採用する。期待した差分が現れないなら DONE_WITH_CONCERNS で報告する。before/after が同値なら fix の前提を再検討する。
 
 ## 関連
 

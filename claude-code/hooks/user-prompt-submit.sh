@@ -153,7 +153,7 @@ _ups_check_fail_repeat() {
 }
 
 # === Duplicate prompt notice: 5秒以内に同一prompt再送を検出 ===
-# 短文 ("yes" / "続き" / "TODO" 等の rate-limit 復旧 prompt) は除外して長文のみ対象
+# 短文 ("yes" / "続き" / "TODO" 等の rate-limit 復旧 prompt) は対象外にして長文のみ対象
 _ups_check_duplicate_prompt() {
   _DUP_NOTICE_MSG=""
   if (( ${#prompt} >= 20 )); then

@@ -15,7 +15,7 @@ description: 自分が PR に書いた未対応 review comment に対応する�
 | default | 自分が起点の thread (`comments[0].author=self`) | commit する | inline reply を自動 post する |
 | `--others` | 他者が最後に投稿した未 resolve thread | commit しない (worktree に未 commit で置く) | 返信 draft を chat に記載するだけ |
 
-`--others` の手順はこの command に持たず、`review-reply-draft` skill へそのまま委譲する。委譲先が修正要否の fact-check、未 commit の code 修正、返信 draft の出力までを担う。**委譲中は commit も post もしない**。他者 thread へ意図せず投稿すると取り消せないため、mode を取り違えたときの被害が default mode と桁違いに大きい。
+`--others` の手順はこの command に持たず、`review-reply-draft` skill へそのまま委譲する。委譲先が修正要否の fact-check、未 commit の code 修正、返信 draft の出力までを担う。**委譲中は commit も post もしない**。他者 thread へ意図せず投稿すると元に戻せないため、mode を取り違えたときの被害が default mode と桁違いに大きい。
 
 fetch の前に、どちらの mode で実行されるかを 1 行 chat に記載する。filter は mode で反転する (default は `author=self`、`--others` は最後の comment が自分以外かつ bot 以外)。query / bot 判定 / reply API / resolve template は `references/pr-review-thread-api.md` が canonical で、Step 1 の前に Read する。
 
@@ -26,13 +26,13 @@ fetch の前に、どちらの mode で実行されるかを 1 行 chat に記�
 - 対象 PR は自分が author。他者 PR に自分が付けた comment は対象外になる (thread の owner が author の PR 上にしかない)
 - 判別 signal は `isResolved=false` かつ `comments[0].author=self`。thread の最初の author が自分 = 自分が投げた comment になる。**resolve 済み thread は fetch の結果から外れる**ため、既に user が手動で resolve した thread は自動的に対応対象外になる
 - 誤爆対策の prefix filter は default on (`@claude` / `[c]` / `→claude` を含む thread のみ取得する)。`--no-prefix-filter` で全 self-authored thread を対象にする
-- **除外語 filter** (default on): thread の 1 通目 body に `memo` / `メモ` を含む thread は fetch から除外する。user が自分向けの memo として書いた comment を誤って対応対象にしないための guard になる。`--include-memo` で off にできる
+- **除外語 filter** (default on): thread の 1 通目 body に `memo` / `メモ` を含む thread は fetch の対象外にする。user が自分向けの memo として書いた comment を誤って対応対象にしないための guard になる。`--include-memo` で off にできる
 
 ## Flow
 
 ### Step 1: fetch (GraphQL で未対応 thread 取得)
 
-reference の query で `pullRequest.reviewThreads` を引き、author=self かつ isResolved=false で filter する。prefix filter が on なら body に prefix 語を含む thread に限定する。除外語 filter (default on) で 1 通目 body に `memo` / `メモ` を含む thread を除外する。
+reference の query で `pullRequest.reviewThreads` を引き、author=self かつ isResolved=false で filter する。prefix filter が on なら body に prefix 語を含む thread に限定する。除外語 filter (default on) で 1 通目 body に `memo` / `メモ` を含む thread を対象外にする。
 
 thread 0 件なら「未対応 comment なし」と 1 行報告して終了する。
 
@@ -89,7 +89,7 @@ body の例:
 
 reply post に成功した thread ごとに、user が手動で叩ける `resolveReviewThread` GraphQL mutation を chat に表示するだけに留める。**自動 resolve は行わない** (user 決定 2026-08-01、resolve は user が内容を確認してから自分で実行する運用)。
 
-表示 template は reference 「resolve の案内」を使い、複数 thread は 1 つの block にまとめて出す。reply post に失敗した thread や `developer-agent` fail 判定の thread は resolve 案内から除外する。
+表示 template は reference 「resolve の案内」を使い、複数 thread は 1 つの block にまとめて出す。reply post に失敗した thread や `developer-agent` fail 判定の thread は resolve 案内の対象外にする。
 
 ## Options
 
@@ -107,7 +107,7 @@ reply post に成功した thread ごとに、user が手動で叩ける `resolv
 
 - **inline thread API と issue comment API は経路が違う**。`gh pr comment` (issue comment) を使わない (canonical: `references/pr-review-thread-api.md`)
 - **reply post failure 時の rollback**: post が fail しても commit は保持したまま停止する。commit の revert は user 判断だ (自動 revert しない)
-- **mode の取り違えは不可逆**: `--others` の対象 thread に default mode の自動 post が実行されると取り消せない。fetch 前に mode を 1 行 chat に書き、filter 条件が mode と一致していることを確かめる
+- **mode の取り違えは不可逆**: `--others` の対象 thread に default mode の自動 post が実行されると元に戻せない。fetch 前に mode を 1 行 chat に書き、filter 条件が mode と一致していることを確かめる
 - **`developer-agent` の 1 file 越境原則**: 1 委譲 = 1 file を守る。thread が複数 file 越境するなら Step 3 で user に分割を確認する
 
 ## Failure Handling

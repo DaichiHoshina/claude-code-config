@@ -1,6 +1,6 @@
 # ドキュメント戦略 (種別・保存先・体系)
 
-ドキュメント種別の役割分担・関係性・保存先・体系原則。`/spec-design` / `/prd` 等の保存先判断時に参照する。
+ドキュメント種別の役割分担・関係性・保存先・体系原則。`/sdd-design` / `/prd` 等の保存先判断時に参照する。
 
 > **どう書くか** (執筆原則) は [PRINCIPLES.md](PRINCIPLES.md) / [long-form-doc.md](long-form-doc.md) / [design-doc-protocol.md](design-doc-protocol.md) 参照。
 
@@ -87,7 +87,7 @@ docs/
 
 各種別ディレクトリに `template.md` を置き、新規作成時は必ずコピーして使う。
 
-**Why**: 書く人によって構造がバラつくと、レビュワーが毎回読み方を学習し直す必要がある。テンプレ固定でレビュー観点が揃い、読み込みコストが下がる。
+**Why**: 書く人によって構造がバラつくと、レビュワーが毎回読み方を再度学習する必要がある。テンプレ固定でレビュー観点が揃い、読み込みコストが下がる。
 
 **テンプレ必須セクション**:
 - **PRD**: 背景 / ゴール / スコープ / 成功指標 / 非スコープ / オープン質問 — [long-form-doc.md PRD MoSCoW テンプレ](long-form-doc.md#prd-moscow テンプレ-mustshouldcouldwont) 参照

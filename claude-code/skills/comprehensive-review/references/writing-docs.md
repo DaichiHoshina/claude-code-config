@@ -37,8 +37,8 @@ All checks derive from: "reduce reader cognitive load", "one read → understand
 
 ## Judgment
 
-- **Critical**: 事実・意味・判断を誤らせる箇所は、範囲を特定して直す
-- **Warning**: 文脈上の読み違えが起きる箇所だけ直す
+- **Critical**: 事実・意味・判断を誤らせる箇所は、範囲を特定して修正する
+- **Warning**: 文脈上の読み違えが起きる箇所だけ修正する
 - finding 数だけで全文 rewrite を決めない。意味を保てる最小範囲を修正する
 - 字数、文数、section 数、接続詞の数を合否判定に使わない
 

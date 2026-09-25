@@ -42,7 +42,7 @@ unused_skills="$("${SCRIPT_DIR}/skill-eval.sh" --days "${DAYS}" --unused 2>/dev/
 zero_commands="$({ "${SCRIPT_DIR}/usage-stats.sh" --days "${DAYS}" --zero 2>/dev/null || true; } \
   | awk '/^=== Commands ===/{f=1; next} /^=== /{f=0} f && /^  [a-z0-9-]+$/{sub(/^  /,""); print}')"
 
-# 新設から DAYS 日未満の資産は「利用ゼロ」計測が成立しないため候補から外す
+# 新設から DAYS 日未満の資産は「利用ゼロ」計測が成立しないため候補から除く
 _added_within_days() {
   local path="$1" added now
   added="$(git -C "${REPO_ROOT}" log --diff-filter=A --follow --format=%at -- "${path}" 2>/dev/null | tail -1)"

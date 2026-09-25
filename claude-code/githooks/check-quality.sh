@@ -42,7 +42,9 @@ if [ -x "./claude-code/scripts/skill-lint.sh" ]; then
 fi
 
 # 2. メタファイル肥大検出 (リファクタ後の現状値+α を上限)
-check_size "claude-code/CLAUDE.global.md" 200         || failed=1
+# CLAUDE.global.md の cap は 2026-09-21 に 200 から 220 へ上げた。自然文 trigger の表を
+# 本文に置く設計にしたため、今後も行が増える (198 行で残り 2 行だった)
+check_size "claude-code/CLAUDE.global.md" 220         || failed=1
 check_size "claude-code/README.md" 300         || failed=1
 
 # 3. skill body 行数 (目安 130 / 上限 150。canonical: CLAUDE.repo.md)
@@ -78,6 +80,21 @@ if [ -f "$HIST" ] && command -v jq >/dev/null 2>&1; then
                 | map(unique_by((.commit // "unknown") | split("-")[0]))
                 | map(select(length >= 3)) | sort_by(-length)
                 | .[] | "  " + .[0].file + ":~" + (.[0].line // 0 | tostring) + " [" + .[0].focus + "] (" + (length | tostring) + " commits)"' 2>/dev/null
+  fi
+fi
+
+# 7. writing 規範 doc を触ったら contract bats を逆引きで実行する
+# 意味を保つ書き換えで assert の文字列だけが古くなり、fail を 3 commit 連続で見落とした
+# (5fd8228e / edcf5e18 / 9ca67f9d。2026-09-21 に 4 件まとめて修正した)。実行は 4 秒
+changed=$(git diff --cached --name-only 2>/dev/null || true)
+[ -n "$changed" ] || changed=$(git diff --name-only origin/main...HEAD 2>/dev/null || true)
+if printf '%s\n' "$changed" | grep -qE '^claude-code/(skills/|guidelines/writing/)' \
+   && command -v npx >/dev/null 2>&1; then
+  out=$(cd claude-code && npx bats tests/unit/writing-policy-contract-*.bats 2>&1) || true
+  if printf '%s\n' "$out" | grep -q '^not ok'; then
+    echo "✗ writing-policy-contract が fail した (規範 doc の文言と assert がずれている)"
+    printf '%s\n' "$out" | grep -A2 '^not ok' | sed 's/^/  /'
+    failed=1
   fi
 fi
 

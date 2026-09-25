@@ -18,7 +18,7 @@ hook / review skill が出力する warn log を週次で集計する script。f
 | `sequential-fire-warn.log` | hook (agent-guard の Agent 逐次発火検知) | agent 並列化違反 |
 | `hook-errors.log` | 全 hook の `exec 2>>` 先 (raw stderr) | hook 自身の実行時 error |
 
-log 追加時は `TARGET_LOGS` 配列を編集して反映する。comment 体言止め (`comment-style-warn.log`) と comment 行数 (`comment-quantity-warn.log`) は書き手 hook ごと廃止済 (b33e28da / 4b641115) のため 2026-08-23 に対象から外した。
+log 追加時は `TARGET_LOGS` 配列を編集して反映する。comment 体言止め (`comment-style-warn.log`) と comment 行数 (`comment-quantity-warn.log`) は書き手 hook ごと廃止済 (b33e28da / 4b641115) のため 2026-08-23 に対象から除いた。
 
 `hook-errors.log` だけは TARGET_LOGS でなく専用 section で出す。行に timestamp が無い raw stderr なので週次の集計対象の区間に含まれず、記載すると全行が毎週「今週分」に数えられて Δ が壊れる。現在 file を message 別に数える snapshot (top 10) として、weekly summary の末尾に付ける。
 

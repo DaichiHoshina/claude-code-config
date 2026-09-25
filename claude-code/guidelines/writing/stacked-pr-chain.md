@@ -35,7 +35,7 @@ close 不要。base branch に統合対象 branch の head を `git merge --no-f
 - 上流を merge → `grep -rn "<旧名>"` で残存 callsite を検出
 - `sed -i '' -e 's/旧名/新名/g' <files>` で一括置換
 - build 確認できない環境 (docker 依存等) は syntax レベルの逆戻し・sed rename に限れば省略可、ただし CI で最終確認する
-- **rename commit の後に追加した新規コードにも grep をかける**。「rename 時点で存在する参照」だけ直しても、以降新規に追加する PR で旧名が再び使われうる
+- **rename commit の後に追加した新規コードにも grep をかける**。「rename 時点で存在する参照」だけ修正しても、以降新規に追加する PR で旧名が再び使われうる
 - chain 依存順で 1 本ずつ完了させる (並列 merge 不可)
 
 **rebase / force push を採ってよい例外 3 条件** (全て満たす場合のみ):
@@ -105,7 +105,7 @@ writer 層 / usecase 層 / adapter 層のどこがエラー変換を担うか、
 
 **revert 後に消える symbol の caveat**:
 
-前段 branch で revert commit を打った後に分割前 branch へ merge すると、ort strategy は「revert 側 (新しい commit) が勝つ」と判断して、分割前 branch で維持したい変更が消える。**分割前 branch 側で明示的に再追加する commit を打つ**必要がある (例: 前段 4a に一旦入れた `IsLastOneProduct` field を revert したが、4b に維持したいなら 4b 側で改めて field 追加 commit を打ち直す)。
+前段 branch で revert commit を打った後に分割前 branch へ merge すると、ort strategy は「revert 側 (新しい commit) が勝つ」と判断して、分割前 branch で維持したい変更が消える。**分割前 branch 側で明示的に再追加する commit を打つ**必要がある (例: 前段 4a に一旦入れた `IsLastOneProduct` field を revert したが、4b に維持したいなら 4b 側で改めて field 追加 commit を打ち換える)。
 
 **scope 判断**:
 

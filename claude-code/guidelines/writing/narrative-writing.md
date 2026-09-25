@@ -74,4 +74,4 @@ blog / エッセイ / インタビュー記事 / 物語型の長文など、読�
 - [PRINCIPLES.md](PRINCIPLES.md) — 共通原則。技術文書は結論先出しが正
 - [external-post.md](external-post.md) — 短文向け (ストーリー型の短文はこちら)
 - [long-form-doc.md](long-form-doc.md) — 技術長文 (結論先出し)
-- 強度の節と鉤括弧の限定は [stop-ai-slop-jp](https://github.com/iKora128/stop-ai-slop-jp) (MIT) の規範を、この repo の適用範囲に合わせて書き直したものになる
+- 強度の節と鉤括弧の限定は [stop-ai-slop-jp](https://github.com/iKora128/stop-ai-slop-jp) (MIT) の規範を、この repo の適用範囲に合わせて書き換えたものになる

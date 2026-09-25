@@ -343,7 +343,7 @@ _ss_build_output_prefix() {
     _AC_PREFIX="current_session_id: ${_SS_SESSION_ID}"$'\n\n'
     # turn 締め self-check の 3 点を毎 session 冒頭に再掲する (CLAUDE.md 内の宣言が auto-load 時に目立たなくなる対策)。
     # 7-21 実測 baseline: block 18 件 / 7 日 (うち今日単日 17 件)、7-28 で再測定して効果評価する
-    _AC_PREFIX+="**[turn 締め self-check]** 送信直前に (a) 最後の 1 文が \`完了\` / \`〜済\` / \`次に\` / \`加えて\` で終わらない (b) 矢印チェーンを prose 化した (c) 本文が要点箇条書き default で、作業工程の列挙や成果物と重複する詳細を含まない (d) 全文を敬体 (です・ます) の完結した文で書き、常体終止や「済」「要確認」の省略語で切っていない (e) 短くする目的で主語・助詞・目的語を削っていない の 5 点を必ず見直す (canonical: guidelines/writing/PRINCIPLES.md 「chat 応答の基本形」 +「完了」「〜済」の禁止)。\n\n"
+    _AC_PREFIX+="**[turn 締め self-check]** 送信直前に (a) 最後の 1 文が \`完了\` / \`〜済\` / \`次に\` / \`加えて\` で終わらない (b) 矢印チェーンを prose 化した (c) 本文が要点箇条書き default で、作業工程の列挙や成果物と重複する詳細を含まない (d) 全文を敬体 (です・ます) の完結した文で書き、常体終止や「済」「要確認」の省略語で切っていない (e) 短くする目的で主語・助詞・目的語を削っていない の 5 点を必ず再確認する (canonical: guidelines/writing/PRINCIPLES.md 「chat 応答の基本形」 +「完了」「〜済」の禁止)。\n\n"
     if [[ -n "${_WT_OWNER_MSG}" ]]; then
         _AC_PREFIX+="${_WT_OWNER_MSG}"
     fi

@@ -20,7 +20,7 @@ pipe 区切り log を macOS BSD awk で読むとき、field separator に `-F' 
 
 **Why**: 2026-07-20 の rule-recall-surface Task 3 で metric が n=0 c100=空 ck=空 を返した。同じ FS を Task 2 fix にも使っていたが grep 併用で偶然動いていた。壊れた $3 でも substring match が検出する fragile state だった。
 
-**How to apply**: hook / cron script / metric TSV command / log 集計 shell で `awk -F' \| '` を書きそうになったら `awk -F' [|] '` に置き換える。grep 併用で見た目動く場合も fragile なので同時に直す。
+**How to apply**: hook / cron script / metric TSV command / log 集計 shell で `awk -F' \| '` を書きそうになったら `awk -F' [|] '` に置き換える。grep 併用で見た目動く場合も fragile なので同時に修正する。
 
 ## 4. bats の `! grep` は非最終行だと fail を握りつぶす
 

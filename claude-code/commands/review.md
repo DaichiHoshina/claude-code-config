@@ -59,6 +59,7 @@ material: `git diff --shortstat` / `gh pr diff <PR>` / `gh pr view <PR> --json b
 | URL/number | `gh pr diff` / `glab mr diff` |
 | `--focus=<angle>` | narrow to 1 of the 12 perspectives (see skill.md) |
 | `--no-difit` | suppress difit (local only) |
+| `--full` | guideline を全載せしてから review する (言語 full + DDD / CA、条件付きで CQRS + 領域 memory の引き当て)。手順は `references/review-commands.md` 「Full guideline load」。`ddd` `ca` `観点全部で` 等を引数に含む依頼はこれに当たる |
 | `--plan <path>` | Also cross-check that the implementation aligns with the plan / design doc. When the doc has an acceptance-criteria table, output a table `受け入れ条件 (文の引用) / 実装で満たしたか / test の有無 / 根拠 (file:line)` before the findings, and report unmet rows as P1 |
 | `--fix` | review 後に developer-agent へ fix を委譲し、再 review で回帰確認する (下記 Fix loop) |
 | `--push` | `--fix` を含み、収束後に `/git-push --pr` へ続ける (旧 `/review-fix-push`) |

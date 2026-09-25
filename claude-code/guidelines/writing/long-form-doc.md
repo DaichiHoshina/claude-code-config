@@ -78,7 +78,7 @@ Diátaxis の how-to に当たる手順書は、作業中の読み手が途中�
 
 ## 品質検証タイミング
 
-各 command の self-check 発動タイミングと loop 上限は `references/writing-check-protocol.md` を canonical とする (`/spec-design` Step 8.5 / `/prd` Phase 4.5 / `/post-comment` Step 2.5 / `/git-push` Step 2・5.5 / `/retrospective` `/diagnose` 長文出力前)。draft 前の構造ゲートはこの file「構造ゲート適用」と `PRINCIPLES.md`「文書全体の読みやすさ」を参照する。
+各 command の self-check 発動タイミングと loop 上限は `references/writing-check-protocol.md` を canonical とする (`/sdd-design` Step 8.5 / `/prd` Phase 4.5 / `/post-comment` Step 2.5 / `/git-push` Step 2・5.5 / `/retrospective` `/diagnose` 長文出力前)。draft 前の構造ゲートはこの file「構造ゲート適用」と `PRINCIPLES.md`「文書全体の読みやすさ」を参照する。
 
 **Web 出力 (Notion / GitHub / Confluence) 時は追加チェック 4 項目**: 長文の分割 / 内容を示す heading / 1 段落 1 主張 / 必要な箇所の強調 — 詳細 `PRINCIPLES.md` `## Web 可読性`。
 
@@ -135,7 +135,7 @@ DesignDoc / PRD / RCA など Git 管理長文 md に適用する規約。詳細:
 | designdoc | 決定後の設計 |
 | implementation / plan | 変更箇所・手順・テスト |
 
-- 他文書が所有する内容は、一文の要約とリンクだけにする。段落単位の再掲や理由の言い換えは重複所有として、単語修正でなく構成から直す
+- 他文書が所有する内容は、一文の要約とリンクだけにする。段落単位の再掲や理由の言い換えは重複所有として、単語修正でなく構成から修正する
 - 同じ論点の正本表記 (「〜の正本はこの file」) は set 内で 1 文書だけに与える。2 文書が同じ論点の正本を主張したら矛盾として解消する
 - 各文書は scope / non-scope を定め、所有しない論点は non-scope としてリンクだけ置く
 
@@ -165,7 +165,7 @@ DesignDoc / PRD / RCA など Git 管理長文 md に適用する規約。詳細:
 
 ### decision 専用 hard checklist
 
-decision type では以下を満たしてから本文を執筆する (1 つでも満たさなければ執筆しない / 書き直す)。
+decision type では以下を満たしてから本文を執筆する (1 つでも満たさなければ執筆しない / 書き換える)。
 
 - 今日決める問いを番号で列挙する。既決は 1 行で鎖し、未決だけ本流に記載する
 - 結論と理由の所有 section は判断ごとに 1 つ。概要 callout は入口のみとし、理由の再掲は禁止する
@@ -426,7 +426,7 @@ KPTは課題明示が必須、YWTは継続学習の記録に特化。週次や�
 
 | コマンド | 適用 |
 |---------|------|
-| `/spec-design` | Step 3.5 structure gate と骨子 → draft → Step 7.5 writing-check-protocol。書き出し前4問、draft完成後 [DDセルフチェック18](design-doc-protocol.md) |
+| `/sdd-design` | Step 3.5 structure gate と骨子 → draft → Step 7.5 writing-check-protocol。書き出し前4問、draft完成後 [DDセルフチェック18](design-doc-protocol.md) |
 | `/prd` | Phase 1.9 structure gate → Phase 2 draft → Phase 4.5 writing-check-protocol。MoSCoWテンプレ使用 |
 | `/git-push --pr` | PR 本文は [pr-description.md](pr-description.md) canonical。writing-check-protocol (Step 2 / 5.5)。この doc の 4 問は draft 起点として併用 |
 | `/diagnose` 長文 / `/retrospective` | 出力前に structure gate を含む writing-check-protocol。箇条書きだけで終わらせない |

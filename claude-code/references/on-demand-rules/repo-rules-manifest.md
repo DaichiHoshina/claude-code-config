@@ -2,7 +2,7 @@
 
 repo ごとの rule の置き場所と frontmatter の key は **repo によって違う**。これを command 本文に literal で記載すると、ai-tools が特定 repo の内部構造に依存し、公開したときにその構造が外部へ露出する。宣言を local manifest へ出し、ai-tools 側は解決 script を呼ぶだけにする。
 
-trigger: `/review-full` / `/spec-plan` / `/spec-dev` が repo rule を参照するとき。manifest を新しい repo 向けに書き足すとき。
+trigger: `/review --full` / `/sdd-plan` / `/sdd-implement` が repo rule を参照するとき。manifest を新しい repo 向けに書き足すとき。
 
 ## 解決 script
 
@@ -42,13 +42,13 @@ rule 以外の repo 固有値もここに宣言し、command 本文には key �
 
 | key | 用途 | 取得する command |
 |---|---|---|
-| `orm_registration_file` | 新しい entity の table 登録先 | `/spec-plan` |
-| `branch_pattern` / `worktree_root` | branch と worktree の命名・置き場所 | `/spec-dev` / `scripts/spec-gate.sh` |
-| `commands.api_docs_gen` | API doc の生成 command | `/spec-plan` |
-| `commands.db_describe` | DB 定義の確認 command | `/spec-dev` |
-| `layers` | 処理経路の層を上流から順に並べた list (例: `["API", "Usecase", "Command", "Query", "DB"]`)。Change Map で全層を描くのに使う | `/spec-plan` |
+| `orm_registration_file` | 新しい entity の table 登録先 | `/sdd-plan` |
+| `branch_pattern` / `worktree_root` | branch と worktree の命名・置き場所 | `/sdd-implement` / `scripts/spec-gate.sh` |
+| `commands.api_docs_gen` | API doc の生成 command | `/sdd-plan` |
+| `commands.db_describe` | DB 定義の確認 command | `/sdd-implement` |
+| `layers` | 処理経路の層を上流から順に並べた list (例: `["API", "Usecase", "Command", "Query", "DB"]`)。Change Map で全層を描くのに使う | `/sdd-plan` |
 
-`layers` の宣言は任意で、Change Map のために全 repo へ要求しない。未宣言の repo では `/spec-plan` が SPEC から確認できる経路の層だけを描き、存在しない層を推測で補わない。
+`layers` の宣言は任意で、Change Map のために全 repo へ要求しない。未宣言の repo では `/sdd-plan` が作業計画書から確認できる経路の層だけを描き、存在しない層を推測で補わない。
 
 ## large-repo path list (別 file)
 
@@ -58,7 +58,7 @@ rule 以外の repo 固有値もここに宣言し、command 本文には key �
 
 - 変更 file は repo root 相対に合わせてから照合する。`**/` は 0 段以上の dir、`*` は `/` を含まない
 - `**/*` と `**` を含む rule、および **frontmatter を含まない rule** は対象領域を限定できないので常に当たる扱いにする
-- glob が当たらないが file 名の慣習が違うだけの rule の扱いは `commands/spec-plan.md` の突き合わせ規約に従う
+- glob が当たらないが file 名の慣習が違うだけの rule の扱いは `commands/sdd-plan.md` の突き合わせ規約に従う
 
 ## 関連
 

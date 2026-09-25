@@ -19,7 +19,7 @@
 |------|-------------|
 | Over-abstraction | Unnecessary interfaces / layers |
 | Fat Service | Multiple responsibilities in one Service |
-| Ubiquitous language mismatch | Naming diverges from domain terminology |
+| Ubiquitous language mismatch | Naming diverges from domain terminology or from the word the repo already uses (`code-quality-design.md` Naming Criteria #1) |
 | OCP-violating conditionals | switch/if for type/carrier → suggest Strategy/Specification |
 | Semantic type sharing | Same type for different domain concepts (coupling risk) |
 
@@ -57,9 +57,9 @@
 | Item | Description |
 |------|-------------|
 | Cognitive complexity | Deep nesting (3+ levels), long conditionals |
-| Naming quality | Over-abbreviated (`usr`, `tmp`), lack of symmetry |
+| Naming quality | Breaks `guidelines/common/code-quality-design.md` Naming Criteria / Naming Shape or the language guideline's Naming Conventions: rare English, filler words, over-abbreviated (`usr`, `tmp`), too long, wrong verb, lack of symmetry |
 | Function size/arity | >50 lines: split, >4 args: objectify |
-| Consistency | Inconsistent naming rules / patterns within project |
+| Consistency | Inconsistent naming rules / patterns within project (count the precedents before flagging; the majority wins) |
 | Structure clarity | Missing guard clauses, negation chains, bool flags |
 | Over-engineering (YAGNI) | Unused abstractions, helpers called once |
 | Redundant shared code | Caller-side branching + internal branching, always-true conditionals |
@@ -122,7 +122,7 @@
 | Duplicate definition | 別名 alias / 定数の二重定義。片方が本番 code から参照されていない |
 | Rationale not recorded | magic number / timeout / retry 回数の根拠 (外部仕様・実測値・上流の制限値) が diff にも comment にも記録されない。指摘前に `git log -S <値>` で導入 commit を引き、根拠が履歴側にないか確かめる |
 | Test shares the assumption | test が実装と同じ前提 (単位 / TZ / 境界) で書かれ、誤りを検出できない |
-| Test depends on live environment | test が実行機の外部状態 (常駐 job の終了 status / 時刻 / network / 既存 DB 行) を mock せず参照し、今の環境で偶然成功している。stub を外す方向の diff もここで検出する |
+| Test depends on live environment | test が実行機の外部状態 (常駐 job の終了 status / 時刻 / network / 既存 DB 行) を mock せず参照し、今の環境で偶然成功している。stub を削除する方向の diff もここで検出する |
 | External behavior unverified | SDK / FW の実挙動を最新 doc と照合していない。lock file の version 差分で挙動が変わる |
 | Timeout budget overrun | timeout 値が上流 (LB / gateway / client) の制限と合算で許容範囲を超える |
 | UI state after action | 操作後の画面状態が意図どおりか (検索条件の保持、overlay が対話要素を覆う) |

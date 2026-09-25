@@ -107,7 +107,7 @@ function lintDiagram(lines, file, findings) {
     const bare = stripQuoted(text);
 
     if (/　/.test(bare)) {
-      add(lineNo, 'ideographic-space', '全角空白が引用符の外にある。半角空白に直すか label を "..." で囲む');
+      add(lineNo, 'ideographic-space', '全角空白が引用符の外にある。半角空白に書き換えるか label を "..." で囲む');
     }
 
     const commentAt = bare.indexOf('%%');

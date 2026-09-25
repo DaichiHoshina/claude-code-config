@@ -51,21 +51,21 @@ _touchable_cleanup_session "${_STOP_SESSION_ID}"
 
 # === raw tool-call XML guard: 応答本文に生のツール呼び出しの文字列があれば block して正規 function-call をやり直させる ===
 # harness 内部記法 (<invoke name= / <parameter name= / antml:invoke / antml:parameter) は
-# ユーザ向け prose に正当に出ない。検出時のみ block するので、直したターンは検出されない = 無限ループしない。
+# ユーザ向け prose に正当に出ない。検出時のみ block するので、修正したターンは検出されない = 無限ループしない。
 # 再注入を避けるため、JP 注意書き自体に該当 literal を含めない (pattern は変数で分割保持)
 _RAW_TC_HIT=""
 if printf '%s' "$LAST_MSG" | grep -qE '<(antml:)?(invoke|parameter)[[:space:]]+name=|^[[:space:]]*<(antml:)?function_calls'; then
   _RAW_TC_HIT="1"
 fi
 if [[ -n "${_RAW_TC_HIT}" ]]; then
-  jq -n --arg reason '応答本文に生のツール呼び出し XML (invoke/parameter タグ) がテキストとして出力された。これは実行されず malformed になる。該当 XML テキストを本文から削除し、正規の function-call 機構でツールを呼び直すこと。本文はユーザ向け説明 (日本語 prose) のみにする。' \
+  jq -n --arg reason '応答本文に生のツール呼び出し XML (invoke/parameter タグ) がテキストとして出力された。これは実行されず malformed になる。該当 XML テキストを本文から削除し、正規の function-call 機構でツールを再度呼び出すこと。本文はユーザ向け説明 (日本語 prose) のみにする。' \
     '{decision: "block", reason: $reason}'
   exit 0
 fi
 
-# === chat 応答 JP 文体検査: 高精度 NG 語は block で自己修正させ、低精度 + 構造系は warn 通知 ===
-# loop 防止 2 重化: (1) stop_hook_active=true (block 起因の再 Stop) は検査 skip で 1 stop 1 回を構造保証、
-# (2) 同 session の block 5 回到達で log-only へ降格 (辞書と chat 内容が構造的に衝突する session への保険)。
+# === chat 応答 JP 文体検査: 検出はすべて warn 通知のみ (block は 2026-09-15 に撤廃、user 指示「再送しなくていい」) ===
+# stop_hook_active=true (別 hook の block 起因で再 Stop した場合) は検査を skip し、1 stop あたり 1 回に限定する。
+# block が無いので、送信前の自己検算は CLAUDE.md 「chat 応答の頻出違反 top」の list が担う。
 # 誤爆時の脱出口: export JP_QUALITY_STOP_CHECK=0
 _JPQ_WARN_MSG=""
 if [[ "${JP_QUALITY_STOP_CHECK:-1}" == "1" && "${_STOP_HOOK_ACTIVE}" != "true" && "${LAST_MSG}" != "Done" ]]; then

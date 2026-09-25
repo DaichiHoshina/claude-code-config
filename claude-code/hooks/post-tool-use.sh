@@ -284,7 +284,7 @@ if [[ "${TOOL_NAME}" == "Bash" ]]; then
   fi
 fi
 
-# --- Analytics記録 (async: sqlite3 fork を hook 応答パスから外す) ---
+# --- Analytics記録 (async: sqlite3 fork を hook 応答パスから除く) ---
 # Read/Glob/Grep/LS 等の非アクション tool は analytics subshell を skip して即 return（fork 削減）
 # この list を変えたら post-tool-use-failure.sh の同 list も一致させる (片側だけだと failure 行のみ残り見かけ 100% error になる)
 _LIB_DIR="${SCRIPT_DIR}/../lib"

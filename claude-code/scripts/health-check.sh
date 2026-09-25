@@ -190,7 +190,7 @@ PY
   echo '```'
   ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
   if [ -d "$ROOT/_archive" ]; then
-    # active 側の同名衝突を除外するため事前に名前一覧を作成
+    # active 側の同名衝突を対象外にするため事前に名前一覧を作成
     active_names=""
     [ -d "$ROOT/commands" ] && active_names+=$(find "$ROOT/commands" -maxdepth 1 -type f -name "*.md" -exec basename {} .md \; 2>/dev/null)
     active_names+=$'\n'

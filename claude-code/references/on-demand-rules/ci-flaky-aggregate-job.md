@@ -16,7 +16,7 @@ PR checks で `<workflow> Result` 型の集約 job だけ FAILURE、実 test job
 | fail に実 test job が含まれる | 実 test log 確認 → 修正 push |
 | 全 run が cancelled | 全 workflow rerun (`gh run rerun <run-id> --failed`) |
 
-集約 job 単体 rerun は既存 success job の集計だけやり直すため 30-60 秒で判定され、全 workflow rerun より大幅に速い。
+集約 job 単体 rerun は既存 success job の集計だけ再実行するため 30-60 秒で判定され、全 workflow rerun より大幅に速い。
 
 ## 手順
 

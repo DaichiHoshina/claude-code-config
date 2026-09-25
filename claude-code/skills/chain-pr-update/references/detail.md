@@ -23,7 +23,7 @@ SKILL.md から参照される詳細情報。禁止 pattern の背景説明・�
 
 - **やってはいけない例**: chain の root/中間 branch に積んだ commit を「整理したい」という理由で squash し、force push する
 - **害**: 2 方向に影響が伝播する。(1) 既に GitHub 上の comment 本文が特定 commit hash を参照している場合、squash で hash が変わり参照先が消えるか無関係な内容になる (2) 対象 branch が既に `chain-propagate.sh` で下流へ merge 済みの場合、下流 branch の merge commit は書き換え前の (存在しなくなる) commit を parent として指したままになり、chain 全体の history が壊れる
-- **正しい進め方**: force push の前に必ず次の 2 点を確認する。(a) `gh api repos/<owner>/<repo>/pulls/<num>/comments --jq '.[] | select(.body | test("[0-9a-f]{7,40}"))'` 等で、対象 commit hash を本文に含む投稿済み comment がないか (b) 対象 branch が root/中間として既に下流へ伝播済みでないか (`chain-status.sh` で下流 branch の parent commit を確認)。いずれかに該当する commit は squash 対象から外す
+- **正しい進め方**: force push の前に必ず次の 2 点を確認する。(a) `gh api repos/<owner>/<repo>/pulls/<num>/comments --jq '.[] | select(.body | test("[0-9a-f]{7,40}"))'` 等で、対象 commit hash を本文に含む投稿済み comment がないか (b) 対象 branch が root/中間として既に下流へ伝播済みでないか (`chain-status.sh` で下流 branch の parent commit を確認)。いずれかに該当する commit は squash の対象外にする
 - **代替**: 非連続な commit の squash に対話的 rebase (`git rebase -i`) が必要な場合、この harness では使用禁止。安全に squash できないなら squash せず、関連 commit hash を返信文などで並記する方式に切り替える
 
 ## Gotchas
@@ -48,7 +48,7 @@ git worktree move path-a.tmp path-b
 
 ### behind=0 でも child 側の base が更新済みとは限らない
 
-`gh pr list --json baseRefName` は PR の設定 base を返す。実際に merge が実行された base の SHA は `origin/<parent>` を fetch し直して `git rev-list --count` で見る。`chain-status.sh` はこの方式を使う。
+`gh pr list --json baseRefName` は PR の設定 base を返す。実際に merge が実行された base の SHA は `origin/<parent>` を再度 fetch して `git rev-list --count` で見る。`chain-status.sh` はこの方式を使う。
 
 ### 更新後に flaky test が失敗したら再実行する
 

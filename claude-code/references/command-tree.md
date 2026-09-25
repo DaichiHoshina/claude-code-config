@@ -14,7 +14,7 @@
 |---|---|
 | 極小 | `/dev` |
 | 小さい開発 | `/prd` → `/plan` → `/dev` or `/flow` |
-| 大きい開発 | `/prd` → `/spec-design` → `/spec-plan` → `/spec-detail` → `/spec-dev` → `/explain` |
+| 大きい開発 | `/prd` → `/sdd-design` → `/sdd-plan` → `/sdd-phase-design` → `/explain` → `/sdd-implement` → `/sdd-review` → `/explain` |
 
 どの track に当たるかの判定と、track ごとの成果物は `design-phase-flow.md` 「Route selection (3 track)」が canonical となる。下の一覧はこの 3 track に登場する command を入口から順に並べたもので、`(大)` は大きい開発だけで使う command を指す。
 
@@ -23,16 +23,18 @@
 - `/fact-check` — 案の主張を grep / wc で実測と突き合わせ、採否を判定する
 - `/grill` — 確定前の設計案を詰問し、前提の不足を出す (read-only)
 - `/prd` — 要件定義 (11-persona review)
-- `/spec-design` (大) — 実装から逆算した仕様書型 Design Doc (受け入れ条件の表 + 決定事項。`--type full` で 12-section)
-- `/spec-plan` (大) — Design Doc を Phase = PR の作業計画書 (SPEC) に分け、対象 / 対象外 / 完了条件を記載する。責務までで実装形は記載しない
-- `/spec-detail` (大) — Phase 1 つの実装形 (method / interface / SQL 方針 / TX / テスト観点) を既存 code の調査から決める。単純な Phase は省略する
-- `/spec-dev` (大) — 作業計画書の Phase を 1 つ実装し、完了条件の実行と `/explain` への handoff で閉じる
+- `/sdd-design` (大) — 実装から逆算した仕様書型 Design Doc (受け入れ条件の表 + 決定事項。`--type full` で 12-section)
+- `/sdd-plan` (大) — Design Doc を Phase = PR の作業計画書 (Implementation Plan) に分け、対象 / 対象外 / 完了条件を記載する。責務までで実装形は記載しない
+- `/sdd-phase-design` (大) — Phase 1 つの実装形 (method / interface / SQL 方針 / TX / テスト観点) を既存 code の調査から決める。単純な Phase は省略する
+- `/sdd-implement` (大) — 作業計画書の Phase を 1 つ実装し、完了条件の実行と `/sdd-review` への handoff で閉じる
+- `/sdd-review` (大) — 実装した Phase の diff に `/review` を当てる。対象外への変更と `/sdd-implement` の点検表を追加の観点にする。修正するものが無ければ `/explain` へ渡す
+- `/sdd-converge` (大 / chain 外) — 全 Phase 実装後に、設計が求めるものと現在の code の差を 4 分類して収束 Phase を作業計画書へ追記する。既定の遷移には入れず、差を確かめたいときに user が発火させる
 - 相談: `/fable` — 難所だけ上位 model に助言を求める (定義 file 方針相談は `--consult`)
 - 深掘り: `/deep` — 入力の状態から詰問 / 発散 / 妥当性判定 / review 観点を判定し fable で思考を掘る router
 
 ### 中央 hub: `/plan`
 
-設計確定後の Phase 分解と実行 mode 判定 (Step 2) を担う。Phase 分解は小さい開発向けで、大きい開発では `/spec-plan` が同じ役割を担う。実行 mode 判定の方は 3 track のどこからでも使う。簡易判定だけなら `/mode` を使う (inline / agent 並列の 2 択、判定後そのまま実装)。Step 0 の guideline 読込は `load-guidelines` が担う。
+設計確定後の Phase 分解と実行 mode 判定 (Step 2) を担う。Phase 分解は小さい開発向けで、大きい開発では `/sdd-plan` が同じ役割を担う。実行 mode 判定の方は 3 track のどこからでも使う。簡易判定だけなら `--mode-only` を付ける。Step 0 の guideline 読込は `load-guidelines` が担う。
 
 `/plan` Step 2 が採用する実装 mode:
 
@@ -49,7 +51,6 @@
 ### 下流: 出荷フェーズ
 
 - `/review` — code review する (skill 実体: `comprehensive-review`)
-- `/review-full` — guideline 全載せ (言語 full + DDD / CA、条件付き CQRS) で `/review` を実行する
 - `/review-queue` — 他者の open PR を待ちが長い順に列挙し、1 件の指摘 draft を file に記載する (投稿は user。「今日のレビュー」)
 - `/self-review-fix` — 自分が PR に投稿した未対応 review comment に修正 commit + 返信で対応する (`--others` で他者 comment を review-reply-draft へ委譲)
 - `/git-push` — commit + push + PR 作成 (`--pr`)。ai-tools の live 反映は `./claude-code/sync.sh to-local --yes` を直接実行する
@@ -72,7 +73,7 @@
 
 作業成果の保存と共有を担う。出力先の使い分けは `work-output-routing.md` を参照する。
 
-- `/explain` — 実装内容を読み手が理解できる順に chat で説明する (read-only)
+- `/explain` — 読み手が理解できる順に chat で説明する (read-only)。実装前は作業計画書の Phase の設計を、実装後は code の詳細を説明する
 - `/post-comment` — GitHub issue / PR へ進捗を報告する
 - `/handoff` — 作業要約を別 session へ引き継ぐ / 依頼を送る
 - skill `local-docs` / `/ld` — 調査ログ / RCA を local HTML 化する (新規は `/ld` の quick が既定、`--full` で規範 Read + Polish)

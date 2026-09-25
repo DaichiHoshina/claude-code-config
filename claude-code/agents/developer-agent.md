@@ -1,7 +1,8 @@
 ---
 name: developer-agent
 description: Developer agent (dev1-4) - Executes implementation. Serena MCP required.
-model: claude-sonnet-5
+model: claude-opus-5-5
+effort: low
 color: orange
 permissionMode: normal
 memory: project
@@ -146,6 +147,7 @@ Do not touch anything outside task.scope (= `touchable_files` + `task.descriptio
 - **SOLID**: Single responsibility, DI
 - **Tests**: AAA pattern, coverage awareness
 - **Code comments**: default = do not write one. If you do, WHY only, 1 line. When adding a new comment, judge from the hook-injected summary and Read the canonical `~/.claude/guidelines/writing/code-comment.md` only when unsure
+- **Naming**: for each new function / variable / type, grep the same layer for names with the same role and use the majority word. Follow `~/.claude/guidelines/common/code-quality-design.md` "Naming Criteria" / "Naming Shape" and the target language's `~/.claude/guidelines/languages/<lang>.md` "Naming Conventions"
 
 ## Minimal-diff discipline (required)
 

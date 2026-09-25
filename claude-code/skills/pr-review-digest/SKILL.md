@@ -6,9 +6,9 @@ description: 自分が作成した PR に対する他者レビューコメント
 
 # pr-review-digest
 
-`local-docs/operations/pr-review-comments/*.html` 形式の集約 doc を日次更新する汎用 skill。前回集計日から今日までに追加された「他者からの新着レビューコメント」を該当 PR block の末尾に **単純追記** する。件数集計・block 再構成はしない (数字表示は撤廃済み方針)。
+`~/local-docs/guides/operations/pr-review-comments/*.html` 形式の集約 doc を日次更新する汎用 skill。前回集計日から今日までに追加された「他者からの新着レビューコメント」を該当 PR block の末尾に **単純追記** する。件数集計・block 再構成はしない (数字表示は撤廃済み方針)。
 
-review comment の本文は引用データとして原文を保持する。`guidelines/writing/PRINCIPLES.md` の「文章生成の不変条件」は skill 自身の見出し・要約・完了報告に適用し、引用した comment の語尾・表記・内容は書き直さない。
+review comment の本文は引用データとして原文を保持する。`guidelines/writing/PRINCIPLES.md` の「文章生成の不変条件」は skill 自身の見出し・要約・完了報告に適用し、引用した comment の語尾・表記・内容は書き換えない。
 
 **--chat mode**: HTML 追記の代わりに chat に差分を markdown で表示する変種。cron / HTML doc とは独立した cursor を使うため干渉しない。「メンバーからの PR コメント差分を取得」等の対話用途で使う。
 
@@ -38,7 +38,7 @@ review comment の本文は引用データとして原文を保持する。`guid
 - **Step 5B. chat 出力 (chat mode)**: 各 PR ごとに `## PR #<n> <title>` の見出しと comment を markdown で chat に出す。HTML doc は触らない
 - **Step 6. metadata 更新**: HTML mode は `updated` / `data-window` 右辺 / リード文の取得日を今日にし、`since-cursor` を今回の実行時刻に更新する。chat mode は独立 cursor file を今回時刻で上書きする
 - **Step 7. CSS/JS path check**: shared CSS/JS の相対 path が有効か grep で確認する。HTML mode 限定で、chat mode では skip する
-- **Step 8. build**: HTML mode 限定で doc dir の root で `node _index/build.mjs` を実行する。fail 時は Step 1 snapshot から差し替える。chat mode では skip
+- **Step 8. build**: HTML mode 限定で置き場の root (`~/local-docs`) で `node _index/build-index.mjs` を実行する。fail 時は Step 1 snapshot から差し替える。chat mode では skip
 
 ## 出力
 
@@ -63,7 +63,7 @@ review comment の本文は引用データとして原文を保持する。`guid
 | gh auth 失効 | user に `gh auth login` を促して abort |
 | 対象 doc が glob で 0 件 | HTML mode は「初回作成は手動で」と促して abort。chat mode は HTML doc に依存しないため、この check は skip する |
 | gh api rate limit | 5 分待って 1 回だけ retry |
-| build.mjs fail | snapshot から restore + user escalate |
+| build-index.mjs fail | snapshot から restore + user escalate |
 
 ## Notes
 

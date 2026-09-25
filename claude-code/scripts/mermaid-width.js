@@ -9,7 +9,7 @@
 //
 // 見積もり式は 2026-09-17 に Mermaid 11 を Chrome で描画して SVG の viewBox 幅を測った値から決めた。
 // LR 7 点は誤差 1% 以内、TB 8 点は最大 5% (tests/fixtures/mermaid-width/measured-2026-09-17.md)。
-// Mermaid の版が変わって bats が fail したら、この定数を測り直す。
+// Mermaid の版が変わって bats が fail したら、この定数を再度測る。
 // `~~~` (不可視 link) を含む図は dagre が階段状に配置するため、この式の対象外にする。
 
 const fs = require('fs');

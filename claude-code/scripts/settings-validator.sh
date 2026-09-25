@@ -254,7 +254,7 @@ sync_settings_root_keys() {
     # allowlist: 既存 dedicated 関数 (hooks / skillOverrides / permissions /
     # sandbox / worktree / enabledPlugins / extraKnownMarketplaces) が担う key を除く
     # template canonical で上書きする root key。template に無い key は live からも消す
-    # (template から外した設定が live に残り続け、/output-style 等で直しても sync で戻る齟齬を防ぐ。2026-08-28)。
+    # (template から削除した設定が live に残り続け、/output-style 等で変更しても sync で戻る齟齬を防ぐ。2026-08-28)。
     # 将来 key を追加する場合はここに明示的に追加すること（暴走防止の allowlist 方式）
     local root_keys=(
         "env"
@@ -278,7 +278,7 @@ sync_settings_root_keys() {
         "showTurnDuration"
         "skipAutoPermissionPrompt"
         "skipDangerousModePermissionPrompt"
-        "instructions"  # 未サポート key。template から外したので live からの削除用に保持する (2026-08-29)
+        "instructions"  # 未サポート key。template から削除したので live からの削除用に保持する (2026-08-29)
         "awaySummaryEnabled"
         "claudeMdExcludes"
     )

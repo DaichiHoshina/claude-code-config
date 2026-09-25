@@ -2,7 +2,7 @@
 # =============================================================================
 # Log rotation helper (size-based, .bak rename)
 # _TH_LOG_MAX_BYTES 超えた log file を "<file>.<YYYYMMDDHHMMSS>.bak" に mv する。
-# 呼出側は rotation 後に対象 log へ append し直す想定。
+# 呼出側は rotation 後に対象 log へ再度 append する想定。
 # =============================================================================
 
 if [[ "${_LOG_ROTATION_LOADED:-}" == "1" ]]; then

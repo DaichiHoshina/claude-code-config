@@ -1,6 +1,6 @@
 ---
 allowed-tools: Read, Glob, Grep, Bash, Task, AskUserQuestion, mcp__serena__*, Skill
-description: 対話しながら設計を練り直す (Superpowers 統合)
+description: 対話しながら設計を練り上げる (Superpowers 統合)
 argument-hint: "[topic]"
 ---
 
@@ -17,7 +17,7 @@ argument-hint: "[topic]"
 | `/plan` | design settled, create impl plan |
 | `/dev` | design+plan done, implement now |
 
-> Full flow (3 track): `/brainstorm` の後は、小さい開発が `/prd` → `/plan` → `/dev` or `/flow`、大きい開発が `/prd` → `/spec-design` → `/spec-plan` → `/spec-detail` → `/spec-dev` → `/explain`。track の判定: `references/design-phase-flow.md`
+> Full flow (3 track): `/brainstorm` の後は、小さい開発が `/prd` → `/plan` → `/dev` or `/flow`、大きい開発が `/prd` → `/sdd-design` → `/sdd-plan` → `/sdd-phase-design` → `/explain` → `/sdd-implement` → `/sdd-review` → `/explain`。track の判定: `references/design-phase-flow.md`
 
 ## Flow
 
@@ -98,7 +98,7 @@ Trailer literal: `references/agent-output-schema.md` (no duplicate definition he
 | 状態 | Next |
 |---|---|
 | 要求が固まり、要件整理へ進む | `/prd <feature>` |
-| 要求も設計も固まった | `/plan <task>` (大きい開発は `/spec-design`) |
+| 要求も設計も固まった | `/plan <task>` (大きい開発は `/sdd-design`) |
 | 案の主張が実物と合うか不明 | `/fact-check` |
 | 前提の不足を突きたい | `/grill <設計案>` |
 

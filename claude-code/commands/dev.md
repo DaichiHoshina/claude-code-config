@@ -59,9 +59,9 @@ Take the output of `/plan` as input, skip scope re-analysis and pre-run confirma
 1. Register only that Phase's 対象 with TaskCreate
 2. Scope guard: stop and report before touching a file listed in the Phase's 対象外, or a file outside 対象 that the plan did not anticipate (do not widen the scope)
 3. Completion check: when the Phase has 完了条件 written as commands, run them and finish only when all pass (otherwise fall back to Execution flow 7). Self-contradiction (a task names a 対象外 file): finish the other in-scope tasks, run 完了条件, then stop without marking the Phase done and ask to fix the plan and re-run the same `--phase`
-4. Otherwise, at the end of the Phase, stop and print `Next: /explain` (user reads the diff first, then fires `/spec-dev <path> --phase <n+1>` or `/dev --plan <file> --phase <n+1>`; print "all Phases done" when none remain) — never continue into the next Phase in the same run
+4. Otherwise, at the end of the Phase, stop and print `Next: /explain` (user reads the diff first, then fires `/sdd-implement <path> --phase <n+1>` or `/dev --plan <file> --phase <n+1>`; print "all Phases done" when none remain) — never continue into the next Phase in the same run
 
-Treat the plan as SoT and do not re-judge the mode. `/spec-plan` (作業計画書) plans are accepted the same way (`/spec-dev <path> --phase <n>` wraps this intake); Phase heading + 対象 / 対象外 / 完了条件 are the scope.
+Treat the plan as SoT and do not re-judge the mode. `/sdd-plan` (作業計画書) plans are accepted the same way (`/sdd-implement <path> --phase <n>` wraps this intake); Phase heading + 対象 / 対象外 / 完了条件 are the scope.
 
 - End-of-Phase report: when the Phase lists acceptance criteria (quoted), print one line `満たした条件: <条件の文の引用> / 残り: <同>` (traceable without re-reading the plan), then print `/explain` (user reviews the Phase's diff before the PR and the next Phase)
 - Drift detection: if the plan and actual code diverge (file missing / symbol renamed etc.), return to re-analysis and report the drift in one line
@@ -69,7 +69,7 @@ Treat the plan as SoT and do not re-judge the mode. `/spec-plan` (作業計画�
 
 ## --parallel spec
 
-Developer×N worktree parallel w/o PO/Manager。並列度評価と worktree 提案は強制、worktree 作成は user 確認要。公式・`--auto` skip 4 条件・cleanup policy は `references/PARALLEL-PATTERNS.md`。Gate A/B (parallel self-review) は `/dev --parallel` に非適用 (`/flow --parallel` 専用)。
+Developer×N worktree parallel w/o PO/Manager。並列度評価と worktree proposal は強制、worktree creation は user 確認要。公式・`--auto` の skip 4 conditions・cleanup policy は `references/PARALLEL-PATTERNS.md`。Gate A/B (parallel self-review) は `/dev --parallel` に非適用 (`/flow --parallel` 専用)。
 
 ## --quick
 
@@ -82,6 +82,8 @@ Developer×N worktree parallel w/o PO/Manager。並列度評価と worktree 提�
 ## Step 0: Guideline loading (conditional)
 
 **Always-on (cannot skip)**: When adding or editing code comments (`// ` `# ` `-- ` `/* ` `<!-- `), decide from the hook-injected summary and Read the canonical `guidelines/writing/code-comment.md` only when unsure (do not skip even with `--quick`).
+
+**Always-on (cannot skip)**: When naming a new function, variable, or type, follow `guidelines/common/code-quality-design.md` "Naming Criteria" / "Naming Shape" and the target language's `guidelines/languages/<lang>.md` "Naming Conventions". Grep the same layer for names with the same role and use the majority word (do not skip even with `--quick`).
 
 | Scenario | Action |
 |----------|--------|

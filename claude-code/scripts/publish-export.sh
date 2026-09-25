@@ -146,7 +146,7 @@ build_staging() {
             continue
         fi
         mkdir -p "${STAGING_DIR}/$(dirname "$inc")"
-        # node_modules と .git は常に除外する
+        # node_modules と .git は常に対象外にする
         rsync -a --exclude node_modules --exclude .git "${SOT_DIR}/${inc}" "${STAGING_DIR}/$(dirname "$inc")/"
     done < <(read_allowlist +)
     while IFS= read -r ex; do

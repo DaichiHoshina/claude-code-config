@@ -229,7 +229,7 @@ _fail_detect() {
 
   if [[ -f "${_FAIL_FILE}" ]]; then
     # 前回も失敗 keyword あり → 2 回連続失敗 → 通知
-    eval "${result_var}='[連続失敗検出] 同一問題で 2 回連続して失敗しています。/clear で context を破棄し、prompt を書き直してください。'"
+    eval "${result_var}='[連続失敗検出] 同一問題で 2 回連続して失敗しています。/clear で context を破棄し、prompt を書き換えてください。'"
     # throttle flag 立て
     printf '1\n' > "${_FAIL_FLAG}" 2>/dev/null || true
     # 観測 log: 1 週間の発火頻度と誤検出パターンを記録

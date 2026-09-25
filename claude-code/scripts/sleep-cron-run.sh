@@ -18,6 +18,10 @@ MODEL="sonnet"
 CHECKER_MODEL="haiku"
 MAX_COST_USD="2.00"
 MAX_SECONDS=900
+# 子 process の終了を待つ watchdog の poll 間隔。bats は 1 を渡して待ちを縮める
+# (既定の 5 のままだと stub 化した claude の終了待ちに 1 tick 5 秒を払う)。
+# bash の算術は整数のみなので 1 秒未満は採らない (waited の加算が壊れる)
+POLL_SECONDS="${SLEEP_CRON_POLL_SECONDS:-5}"
 DRY_RUN=0
 
 while [[ $# -gt 0 ]]; do
@@ -171,7 +175,7 @@ if [[ "${DRY_RUN}" -eq 1 ]]; then
 fi
 
 # gate A (schema fail) / gate B (checker REJECT) は理由を prompt へ注入して 1 回だけ再 mine する。
-# infra 起因の fail (watchdog timeout / tracked file 変更) は再試行で直らないため即 reject する
+# infra 起因の fail (watchdog timeout / tracked file 変更) は再試行で解消しないため即 reject する
 total_cost=0
 for attempt in 1 2; do
   if [[ "${attempt}" -eq 2 ]]; then
@@ -198,8 +202,8 @@ for attempt in 1 2; do
   waited=0
   watchdog_timeout=0
   while kill -0 "${maker_pid}" 2>/dev/null; do
-    sleep 5
-    waited=$((waited + 5))
+    sleep "${POLL_SECONDS}"
+    waited=$((waited + POLL_SECONDS))
     if [[ "${waited}" -ge "${MAX_SECONDS}" ]]; then
       # maker_pid はパイプライン全体の process group leader (set -m で個別 group 化)。
       # 単一 PID kill だと外側 subshell しか終了せず claude 本体が orphan で残存する
@@ -285,8 +289,8 @@ for attempt in 1 2; do
   waited=0
   checker_timeout=0
   while kill -0 "${checker_pid}" 2>/dev/null; do
-    sleep 5
-    waited=$((waited + 5))
+    sleep "${POLL_SECONDS}"
+    waited=$((waited + POLL_SECONDS))
     if [[ "${waited}" -ge "${MAX_SECONDS}" ]]; then
       kill -- "-${checker_pid}" 2>/dev/null || kill "${checker_pid}" 2>/dev/null || true
       wait "${checker_pid}" 2>/dev/null || true

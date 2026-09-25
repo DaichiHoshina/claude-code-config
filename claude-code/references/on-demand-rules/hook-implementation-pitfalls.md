@@ -37,7 +37,7 @@ Claude Code は session_id を env でなく **stdin JSON** で hook に渡す�
 - 必ず `SESSION_ID=$(jq -r '.session_id // empty' <<< "$INPUT")` で stdin から抽出する
 - flag file path は `/tmp/claude-hook-<hook-name>-${SESSION_ID}` で session 粒度にする
 - 参照実装: `hooks/session-start.sh` / `hooks/post-tool-use.sh`
-- `tests/unit/hooks/session-id-stdin-priority.bats` が env 優先代入を grep 検出する。新 hook 追加でこの bats が RED になったら stdin 優先に直す
+- `tests/unit/hooks/session-id-stdin-priority.bats` が env 優先代入を grep 検出する。新 hook 追加でこの bats が RED になったら stdin 優先に修正する
 - smoke test: hook 手動発火 → `/tmp/claude-hook-*` 作成確認 → 2 回目で skip 確認
 
 ## 注意点 3: git commit の option 判定は word-boundary 正規表現にする
@@ -55,13 +55,13 @@ NG 語 canonical は `guidelines/writing/NG-DICTIONARY.md`。
 
 settings.json の `command` field は `hook.sh cleanup` のような引数付き形式を取る。丸ごと `-f` チェックすると存在しない path を評価して false-positive になる (2026-05-17 に `session-start.sh` の診断で「not found」誤診断 4 件、`5dc6c1d` で修正)。`[ -f "${cmd%% *}" ]` のように引数を除去してから確認する。
 
-## 注意点 5: 文体違反の再発は rule 追記で止まらない、block 昇格が構造対応
+## 注意点 5: chat 文体の block 昇格は user が撤廃した (2026-09-15、再提案しない)
 
-「完了」多用など文体違反の再発に対して、rule / CLAUDE.md への規範追記は効果が現れないことが実測で確定している (rule 追加翌日から同 pattern が再発、7 日累積 warn は増加)。warn は systemMessage で user にしか見えず AI に届かない (7 日で block 79 件 vs warn 1850 件)。block だけが AI に書き直しを強制する feedback loop になる。
+かつては「block だけが AI に書き直しを強制する」という実測 (7 日で block 79 件 vs warn 1850 件) を根拠に block 昇格を推していた。2026-09-15 の commit `4aae04a4` で、user 指示「再送しなくていい」により chat 検査は warn 通知だけになった。**文体の再発を理由に block へ戻す提案をしない。**
 
-- 文体・出力品質の改善依頼が来たら、規範 file の追記より先に `lib/jp-quality/block-checks.sh:_chat_quality_check` の block 対象昇格を検討する
-- warn を次 turn へ届けたい場合は `/tmp/claude-stop-jpq-warn-*` 経由の additionalContext 還流を使う (commit `a3c1485`)
-- 誤爆が多い検査 (断定語「完了」、連続漢字) は block にしない。loop 上限 5 を浪費して機構全体が log-only へ降格する
+- 現在の防衛線は CLAUDE.md 「chat 応答の頻出違反 top」の list で、AI が送信前に自分で検算する。改善依頼が来たら、この list を `~/.claude/logs/jp-quality-block.log` の実測で再取得する (集計 command は CLAUDE.md の同じ行に記載)
+- warn を次 turn へ届ける経路は `/tmp/claude-stop-jpq-warn-*` 経由の additionalContext 還流 (commit `a3c1485`)。ここは今も動いている
+- 辞書そのものの追加・削除は `ng-word-register.md` の手順で行う (block とは別系統)
 
 ## 注意点 6: 語彙 denylist は意味を判定できない、量 gate が構造対応
 
@@ -69,7 +69,7 @@ NG 語ゼロ + 常体で閉じた What 言い換え comment は文字列照合�
 
 ## 注意点 7: checker 自己改修中の stale warn はノイズ
 
-worktree で checker 自体を改修している間は、sync 前の古い live checker が新規範では正しい行 (動詞終止・動詞 + 閉じ括弧等) に warn を出し続ける (2026-07-18 実踏)。この warn は sync 後に消えるため、1 件ずつ追わず「新 checker で判定し直して本物だけ直す」で切り分ける。
+worktree で checker 自体を改修している間は、sync 前の古い live checker が新規範では正しい行 (動詞終止・動詞 + 閉じ括弧等) に warn を出し続ける (2026-07-18 実踏)。この warn は sync 後に消えるため、1 件ずつ追わず「新 checker で改めて判定し、本物だけ修正する」で切り分ける。
 
 ## 注意点 8: hook が出力する log を集計する script は書き出し元 printf を先に確認する
 
@@ -107,7 +107,7 @@ pre-tool-use の jp-quality hook は Edit / Write の new_string 全体を検査
 
 commit message や chat 応答内で、jp-quality hook の禁止語 (AI 段取り定型) を「例文の literal」として引用したい場合、通常の文中に記載すると block される。code fence 内は scan 対象外。
 
-**Why**: hook (`hooks/pre-tool-use.sh` + `lib/jp-quality/`) は code / literal block を warn / block 対象から除外する仕様。fence 外の平文だけを judge する。
+**Why**: hook (`hooks/pre-tool-use.sh` + `lib/jp-quality/`) は code / literal block を warn / block の対象外にする仕様。fence 外の平文だけを judge する。
 
 **How to apply**: hook 禁止語 (AI 段取り定型 / 難読漢語 / 完了) を literal として引用する必要があるとき、以下 3 手いずれかで囲む: (1) fenced code block (``` で囲む) / (2) 4-space indent block / (3) inline code span (`` ` `` で囲む)。commit message HEREDOC 内も同じ扱いで検査対象外になる。
 
@@ -117,7 +117,7 @@ commit message や chat 応答内で、jp-quality hook の禁止語 (AI 段取�
 
 **Why**: sleep-pipeline (`sleep-cron-run.sh:79`) が実行中に別 session が commit すると HEAD が変わる。maker session が tracked file を全く触っていないのに reject が発火して当日枠を無駄に消費した (2026-07-22 07:22 事象)。maker の tool 履歴を全 dump しても Edit 対象は stage file (untracked) のみで、真の HEAD 変化元は同時刻の別 session commit だった。
 
-**How to apply**: dev / cron / launchd で並行実行される長時間 script の副作用検知に git 状態を使うとき (`_tracked_fingerprint` 相当)、HEAD と porcelain は除外し diff 2 種のみで hash を作る。stage file を untracked のまま Edit 対象にする pattern なら porcelain 除外が同時に false positive も防ぐ (untracked path 列挙のみで内容 hash なし)。tracked file の unstaged / staged 変化検知は diff 2 種で必要十分。
+**How to apply**: dev / cron / launchd で並行実行される長時間 script の副作用検知に git 状態を使うとき (`_tracked_fingerprint` 相当)、HEAD と porcelain は対象外にし diff 2 種のみで hash を作る。stage file を untracked のまま Edit 対象にする pattern なら porcelain を対象外にすることが同時に false positive も防ぐ (untracked path 列挙のみで内容 hash なし)。tracked file の unstaged / staged 変化検知は diff 2 種で必要十分。
 
 ## 注意点 13: rule 追加 / 辞書追加は AI 想起依存で適用されない (3 回失敗)
 
@@ -129,7 +129,7 @@ hook block / warn が高止まりしている pattern (jp-quality の 100 字超
 
 **Why**: LLM の生成 loop に self-check が組み込まれていない基礎能力課題を、rule 記述 (= AI が「思い出す」ことに依存する型) で解決しようとしても、書く直前に rule を想起する trigger が無く同 pattern が再発する。
 
-**How to apply**: 同種の再発抑止設計をするとき、rule / 辞書追加案は「AI 想起依存」型として除外し、以下 3 型のいずれかに限定する: (1) 既存 hook 拡張 (`_inject_chat_selfcheck_if_signal` の trigger 語拡張 pattern) / (2) block 後の retry 成功率向上 (block message に修正例テンプレを inject する pattern) / (3) AI が通らざるを得ない経路の構造強制 (git-push script の commit template pattern)。
+**How to apply**: 同種の再発抑止設計をするとき、rule / 辞書追加案は「AI 想起依存」型を対象外にし、以下 3 型のいずれかに限定する: (1) 既存 hook 拡張 (`_inject_chat_selfcheck_if_signal` の trigger 語拡張 pattern) / (2) block 後の retry 成功率向上 (block message に修正例テンプレを inject する pattern) / (3) AI が通らざるを得ない経路の構造強制 (git-push script の commit template pattern)。
 
 ## 注意点 14: log parser は実 log 1 sample で列区切りを先に確かめる
 
@@ -149,7 +149,7 @@ settings で `async: true` 登録した hook が返す `decision: block` と `ho
 **Why**: 2026-07-26 の設定監査で、stop.sh (raw XML / NG 語 block) と post-tool-use.sh (secret redact) が async 登録のまま block / redact を出していて silent 無効化していた。async 化が guard 追加より先で時系列が逆転したのが原因。stop.sh の raw XML guard は「最終防衛」と信じられていたが適用されていなかった。
 
 **How to apply**:
-1. block や出力書換 (redact / sanitize) を有効にしたい hook は必ず `async` を外して同期登録する。log 出力・通知など副作用だけの hook は async のままでよい
+1. block や出力書換 (redact / sanitize) を有効にしたい hook は必ず `async` 指定を削除して同期登録する。log 出力・通知など副作用だけの hook は async のままでよい
 2. 同期化コストは block 経路が早期 exit するか (stop.sh は exit 0 で重処理未到達)、matcher が限定できるか (post-tool-use は Bash 限定で他は early-exit) で判断する。新 hook 分離より async 除去 1 行が regression 面で有利なことが多い
 3. hook を新規追加するとき、その hook が block / 出力書換を出すなら async にしない。log 専用と block 兼用を同 file に置くなら、同期にして block 経路を早期 exit させる
 
@@ -187,7 +187,7 @@ NG 語を含む file では、挿入位置の直後行など NG 語を含まな�
 
 gate 系 hook の error message に記載する retry 誘導 (最小例・形式説明) が canonical 文書の要求形式とずれていると、AI は誘導どおりの誤形式で retry して再 block される loop に入る。
 
-**Why**: block された側は canonical を読み直さず error message だけを頼りに retry する。誘導文言は gate の仕様の一部で、gate 本体と同じ精度を要する。
+**Why**: block された側は canonical を再確認せず error message だけを頼りに retry する。誘導文言は gate の仕様の一部で、gate 本体と同じ精度を要する。
 
 **How to apply**: gate を追加・修正したら、error message に「検査を通過する形式の具体例」を載せ、canonical の記述・validator の正規表現と 3 点一致を確認する。2026-08-23 の explore contract gate で、最小例が `anchor_evidence: <ls/git 出力 1 行>` と誤形式を教えており、形式違反 block 10 件/週の主因だった (91bea9ee で修正)。
 
@@ -209,7 +209,7 @@ block 系 guard の error message に記載する「代わりにここへ」の 
 3. 廃止した path は「禁止と書く」だけでなく guard の block 対象に入れる。rule 追記だけでは止まらない (注意点 13 と同型)
 4. 廃止領域への流入は `/memory-clean` Stage 1 の legacy-dir 検出が定期的に数える
 
-## 注意点 19: settings の env は Bash tool に継承されるので、既定値を確かめる bats は env を外す
+## 注意点 19: settings の env は Bash tool に継承されるので、既定値を確かめる bats は env を対象外にする
 
 `~/.claude/settings.json` の `env` は Claude Code の Bash tool の子 process に継承される。`JP_QUALITY_STYLE_ENFORCEMENT=1` を既定にした (2026-09-11) 後、「既定では block しない」を確かめる `tests/unit/hooks/notion-checkers.bats` が Bash tool 経由でだけ失敗した。terminal から直接実行すると成功するため、hook の regression に見える。対処は `run env -u JP_QUALITY_STYLE_ENFORCEMENT bash -c '...'` で変数を外し、code 側の既定値 (未設定 = 0) を確かめる形にする。settings の env に hook の切替変数を追加したときは `grep -rn "<VAR>" tests` で既定値に依存する test を探す。
 

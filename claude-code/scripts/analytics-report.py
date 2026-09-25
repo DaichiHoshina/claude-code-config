@@ -38,6 +38,7 @@ _EXCLUDED_ORG_FRAGMENT = "".join(["s", "n", "k", "r", "d", "u", "n", "k"])
 MODEL_PRICING: dict[str, dict[str, float]] = {
     "claude-fable-5": {"input": 10.0, "output": 50.0, "cache_read": 1.00, "cache_write": 12.50},
     "claude-fable-5-1": {"input": 10.0, "output": 50.0, "cache_read": 0.25, "cache_write": 12.50},
+    "claude-opus-5-5": {"input": 4.0, "output": 20.0, "cache_read": 0.20, "cache_write": 5.0},
     "claude-opus-5": {"input": 5.0, "output": 25.0, "cache_read": 0.50, "cache_write": 6.25},
     "claude-opus-4-8": {"input": 5.0, "output": 25.0, "cache_read": 0.50, "cache_write": 6.25},
     "claude-opus-4-7": {"input": 5.0, "output": 25.0, "cache_read": 0.50, "cache_write": 6.25},

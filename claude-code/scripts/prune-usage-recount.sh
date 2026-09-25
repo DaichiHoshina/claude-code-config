@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 2026-08-29 に非メイン PC の transcript を根拠に削除した command / plugin を、
-# このマシンの transcript で数え直す。メイン PC で回して 0 でないものは git revert の対象。
+# このマシンの transcript で再度数える。メイン PC で回して 0 でないものは git revert の対象。
 # 使い方: ./scripts/prune-usage-recount.sh [--days N]   (default 90)
 set -u
 DAYS=90

@@ -17,7 +17,7 @@ daily-report が挙げた「今日やること」の 1 件を無人で片づけ�
 2. PR / issue へのコメント投稿、reviewer・assignee・label の変更はしない
 3. launchctl 操作、plist の配置換え、`sync.sh to-local` などローカル状態の変更はしない
 4. 人名・handle・社内固有名詞を commit message / PR body / 出力に記載しない (public repo)
-5. 主張は実測で裏づける。検証 command を実行せずに「直った」「問題ない」と書かない
+5. 主張は実測で裏づける。検証 command を実行せずに「修正できた」「問題ない」と書かない
 6. 判断が割れる、根拠が足りない、変更が repo 外へ及ぶ場合は、何も変更せず所見だけ出力して終える
 
 ## 出力の形式
@@ -47,4 +47,4 @@ staging 済みの夜間提案 (`memory/sleep-proposals-*.md` のうち `.adopted
 1. repo の `memory/` と該当 MEMORY.md、直近の memory-clean log を読み、残件を列挙する
 2. 機械的に確定できるもの (dangling link の解消、index 行の欠落・重複、明らかな重複 memory の統合) だけを実行する。memory dir は gitignore 済みなので commit は不要
 3. 内容の取捨に判断が必要なもの (どちらの記述を保持するか、廃止して良いか) は変更せず、選択肢と推奨を NEXT 行に記録する
-4. memory file の文体を圧縮・要約し直さない。触るのは判断待ちとして挙がった箇所だけにする
+4. memory file の文体を圧縮・要約し変えない。触るのは判断待ちとして挙がった箇所だけにする

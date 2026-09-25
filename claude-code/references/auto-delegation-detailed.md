@@ -99,7 +99,7 @@ Scope boundary: tasks matching the CLAUDE.md Auto-Delegation table row "iteratio
 | 10+ file bulk processing | `claude -p` fan-out (`references/fanout-recipes.md`) |
 | **bulk / exhaustive / large-scale readonly** | `explore-agent` (read-only) or `developer-agent` (edit) — mandatory Sonnet delegate, parent sample reduction prohibited |
 
-**Auto-launch は Skill tool 呼び出しで行う (文章による再現で代替しない)**: `commands/*.md` (`/dev` / `/flow` / `/mode` / `/spec-plan` 等) は Skill tool の available skills 一覧にも同時登録されている。上表の判定を「記憶している判定表を思い出してなぞる」で済ませず、実際に `Skill(skill="mode", args="<task>")` のように呼び出す。user が `/name` を明示しない実装依頼でも同様で、command 名の明示有無は発火経路を変えない (2026-09-17 実踏: 「/dev や /flow を指定しない使い方にしたい」という要望に対し、command 定義が既に skill としても呼べることを確認した)。
+**Auto-launch は Skill tool 呼び出しで行う (文章による再現で代替しない)**: `commands/*.md` (`/dev` / `/flow` / `/plan` / `/sdd-plan` 等) は Skill tool の available skills 一覧にも同時登録されている。上表の判定を「記憶している判定表を思い出してなぞる」で済ませず、実際に `Skill(skill="mode", args="<task>")` のように呼び出す。user が `/name` を明示しない実装依頼でも同様で、command 名の明示有無は発火経路を変えない (2026-09-17 実踏: 「/dev や /flow を指定しない使い方にしたい」という要望に対し、command 定義が既に skill としても呼べることを確認した)。
 
 ## Model default switch history (2026-06-29)
 

@@ -67,7 +67,7 @@ for cmd in "${MAINTENANCE_COMMANDS[@]}"; do
       "$CLAUDE_BIN" -p "$cmd" --fallback-model sonnet > "$out_file" 2>&1 || rc=$?
     fi
     cat "$out_file" >> "$log_file"
-    # スリープ復帰直後の DNS 不通は待てば直るので、その失敗だけ再試行する
+    # スリープ復帰直後の DNS 不通は待てば解消するので、その失敗だけ再試行する
     if [[ "$rc" -ne 0 && "$attempt" -lt "$NET_RETRY_MAX" ]] && grep -q -E "ENOTFOUND|Can't reach the API" "$out_file"; then
       attempt=$((attempt + 1))
       rm -f "$out_file"

@@ -29,13 +29,13 @@ query($pr: Int!) {
 | `/self-review-fix` (default) | `comments[0].author.login` が自分 (自分が起点の thread) |
 | `review-reply-draft` / `/self-review-fix --others` | 最後の comment の author が自分以外かつ bot 以外 |
 
-resolve 済み thread は fetch の時点で除外される。owner / repo / 自分の login は現 repo と `gh api user` から導出し、定義 file に固有名詞を記載しない。
+resolve 済み thread は fetch の時点で対象外になる。owner / repo / 自分の login は現 repo と `gh api user` から導出し、定義 file に固有名詞を記載しない。
 
 ## bot 判定
 
 GraphQL では **`author.__typename == "Bot"`** で判定する。`login` の `[bot]` suffix は REST だけに付き、GraphQL の `author.login` には付かない (同じ coderabbitai が REST では `coderabbitai[bot]`、GraphQL では `coderabbitai` になる)。直近 30 PR の review comment 148 件のうち 109 件が `Bot` 型で、`login` が `[bot]` で終わるものは 0 件だった。suffix 判定だと bot を 1 件も除外できない。
 
-REST 専用の skill (`pr-review-digest`) は suffix の有無を問わない regex で除外してよいが、その regex を GraphQL 側に流用しない。
+REST 専用の skill (`pr-review-digest`) は suffix の有無を問わない regex で対象外にしてよいが、その regex を GraphQL 側に流用しない。
 
 ## 返信の post (inline reply)
 

@@ -60,7 +60,7 @@ MCP tool が失敗 or 期待外れの返却をした場合、skill 使用者が�
 
 | Situation | Action |
 |------|------|
-| MCP connect fail (`Not connected` / timeout) | `claude mcp list` で context7 が Connected か確認する。切れていたら `claude mcp restart context7` を試し、駄目なら `claude mcp remove context7` の後に `claude mcp add --scope user context7 -- npx -y @upstash/context7-mcp` で入れ直す。復旧不能なら knowledge cutoff で書き、その旨を明示する |
+| MCP connect fail (`Not connected` / timeout) | `claude mcp list` で context7 が Connected か確認する。切れていたら `claude mcp restart context7` を試し、駄目なら `claude mcp remove context7` の後に `claude mcp add --scope user context7 -- npx -y @upstash/context7-mcp` で再度入れる。復旧不能なら knowledge cutoff で書き、その旨を明示する |
 | 429 Rate Limit エラー | 1 秒待って再試行する。それでも 429 が続くなら knowledge cutoff で書く |
 | Zero search results | `libraryName` の綴りを変えて再試行する。例えば `react-hooks` を `react hooks` に、`nextjs` を `next.js` に変える。それでも空なら library 未対応と判断する |
 | Context fetch fail post-libraryId | Step 1 の 2 番目 / 3 番目の候補 ID で再試行する。max 3 候補まで |

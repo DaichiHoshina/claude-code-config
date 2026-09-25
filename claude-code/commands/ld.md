@@ -32,20 +32,20 @@ effort: low
 | `plan` | 未実施の段取り | なし |
 | `guide` | ツール / 運用ガイド | なし |
 
-置き場は上から順に最初に当たった先: PJ に対応するもの → `projects/{issue番号}-{topic}/` / ツールの使い方 → `tool-guides/{tool}/` / 横断ドメイン仕様 → `domain-specs/{domain}/` / 設定変更の判断に使う観測 → `monitoring/{領域}/` / 状態把握の調査 → `operations/{topic}/` / 迷う → `inbox/`。PJ dir の解決は script の `--project` に任せる (事前の `ls` は不要)。`--dir` 指定があれば `--out` に dir ごと書く。
+置き場は `~/local-docs` に固定で、dir は 3 つしかない。読み返す前提のもの (使い方 / 手順 / まとめ) は `guides/`、使い捨てに近いもの (調査メモ / 試行錯誤 / 作業ログ) は `notes/`、古くなったものは `archive/`。`--out` に dir を書かなければ `guides/` に入る。dir を増やさない (増やしたくなったら、それは別の doc 置き場へ持っていく量だという合図)。
 
 file 名は `kebab-case.html`、タイトルは目的を先頭にした短い名詞句で、dir 名にある PJ 名 / 番号を繰り返さない。
 
 ## Step 2 + 3: 本文を Markdown で書き、script で起こす (1 Bash call)
 
-本文は Markdown を heredoc で stdin に渡す。h1 / lead / style / script は script が付けるので書かない。骨格は template と同じ番号付き `##` + 末尾 `## 関連` を基本にし、不要な見出しは落とす。箇条書き / 表 / グラフ優先 (地の文は結論 1 文 + 前置きまで)。
+本文は Markdown を heredoc で stdin に渡す。h1 / lead / style / script は script が付けるので書かない。**見出しに番号を書かない** (`## 1. 目的` ではなく `## 目的`。連番の badge と目次の番号は decorate script が付けるので、書くと二重になる)。骨格は `##` の並び + 末尾 `## 関連` を基本にし、不要な見出しは落とす。**`##` は `## 関連` を含めて 5 つまで、本文の Markdown は 2KB を目安にする** (所要時間は本文 1KB あたり約 5 秒で量に比例する。実測 2026-09-21)。**この目安は地の文にだけ掛ける。表 / pill / `code` span / `::: verify` は削らない** (画面の色と構造はこの 4 つが担うので、量を詰めるために削ると黒い箇条書きだけの doc になる)。箇条書き / 表 / グラフ優先 (地の文は結論 1 文 + 前置きまで)。
 
 ```bash
-LD=$(ls -d <ghq-root>/github.com/*/local-docs | head -1)
-node $LD/_index/new-doc.mjs --type <type> --project <issue番号> --out <name> \
+LD=$(~/.claude/scripts/local-docs-context.sh --root) || exit 1
+node "$LD"/_index/new-doc.mjs --type <type> --out <name> \
   --title "<title>" --lead "<1 行リード>" \
-  [--event-date ... | --data-window ... | --observed-at ...] [--slug <topic>] --md - <<'EOF'
-## 1. 目的
+  [--event-date ... | --data-window ... | --observed-at ...] --md - <<'EOF'
+## 目的
 - 結論は **こう**。状態は [[ok:完了]] / [[warn:要対応]]
 | 項目 | 件数 |
 |---|---|
@@ -58,10 +58,10 @@ node $LD/_index/new-doc.mjs --type <type> --project <issue番号> --out <name> \
 EOF
 ```
 
-- `--project` は `projects/<番号>-*` を解決する。dir が無い新規 PJ は `--slug <topic>` を添える。PJ に対応しない doc は `--project` を省き `--out tool-guides/{tool}/<name>` のように dir ごと書く
+- `guides/` 以外へ置くときは `--out notes/<name>` のように dir ごと書く。`notes/` は `.md` が既定なので、HTML を起こすのは `guides/` だけにする
 - Markdown 方言: `##` / `###` / `####` (h2 / h3 / h4、入れ子を積極的に使う)、`-` と `1.` (2 space 字下げで入れ子)、`| |` 表 (数値セルは自動で右寄せ)、``` code、`> ` 引用、`::: verify|nonscope|timeline` ブロック、`**強調**` / `` `code` `` / `==核心==` / `[t](url)`、`[[ok|warn|skip|new|mod:text]]` pill。正本は script 冒頭の comment
 - `.arch` / `.chart` のような Markdown に無い装飾が必要なときだけ `--body <file>` に HTML fragment を渡す
-- script が metadata (`created` / `updated` = 現在時刻) を刻印し `build.mjs` まで実行する。`placeholder 残 N` が発生したら `{...}` が残存しているので修正する
+- script が metadata (`created` / `updated` = 現在時刻) を刻印し `build-index.mjs` まで実行する。`placeholder 残 N` が発生したら `{...}` が残存しているので修正する
 
 ## 完了報告
 

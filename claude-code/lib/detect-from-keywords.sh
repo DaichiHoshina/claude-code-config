@@ -19,7 +19,7 @@ _init_cache() {
   fi
 
   # -s は「存在し、かつ空でない」を builtin で見る。0 byte cache を欠損扱いにして
-  # 書き直すのが要点で、-f だと 0 byte file が残り続けて cache が永久に miss する
+  # 書き換えるのが要点で、-f だと 0 byte file が残り続けて cache が永久に miss する
   if [ ! -s "$CACHE_FILE" ]; then
     echo '{}' > "$CACHE_FILE"
   fi
@@ -178,8 +178,6 @@ detect_from_keywords() {
     # キーワードパターンテーブル（pattern → language:skill）
     declare -A keyword_patterns=(
     ['go|golang|\.go|go\.mod']="golang:backend-dev"
-    ['python|\.py|pip|poetry|pyproject\.toml|requirements\.txt|django|fastapi']="python:"
-    ['rust|\.rs|cargo|cargo\.toml|tokio|axum']="rust:"
     ['typescript|\.ts|\.tsx|tsconfig']="typescript:backend-dev"
     ['react|next\\.js|nextjs|\\.jsx']="react:react-best-practices"
     ['tailwind']="tailwind:"

@@ -42,7 +42,9 @@ Rule: "Would a change/deletion affect an unrelated feature?" → Yes = separate.
 
 - Packages: lowercase, singular, short (`user`)
 - Interfaces: verb + er (`Reader`)
-- Constructors: `New` + type name
+- Constructors: `New` + type name. Drop the package name from it (`shipping.NewRequest`, not `shipping.NewShippingRequest`)
+- Getters: no `Get` prefix (`User()`, not `GetUser()`). Keep a verb when the fetch itself matters, such as a DB read (`FindUserByID`, `ListOrders`)
+- Maps: name by value and key (`usersByID map[UserID]User`, not `userMap`)
 
 ## Quick Reference
 

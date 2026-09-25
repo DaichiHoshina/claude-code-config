@@ -1,7 +1,7 @@
 ---
 allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 argument-hint: "<doc paths...> [--norms <guideline file / 節>] [--since <days|commit>]"
-description: "writing 規範を checklist 化して既存 doc 群へ実測適用する retrofit。「規範を当てて」「修正した観点で直して」で起動"
+description: "writing 規範を checklist 化して既存 doc 群へ実測適用する retrofit。「規範を当てて」「修正した観点で書き換えて」で起動"
 ---
 
 # /norm-apply — 規範 checklist の実測適用 (retrofit)
@@ -20,7 +20,7 @@ inline 固定 (iteration 前提、CLAUDE.md Auto-Delegation table)。修正対�
 | `--norms <file / 節>` | checklist の源。省略時は `git log` で guidelines/writing/ の直近変更 (--since 起点) から変更節を抽出する |
 | `--since <days\|commit>` | 規範差分の起点。default 7 days |
 | `--norms all` | 差分でなく規範全域 (構造ゲート / 文書セット所有 / type 別品質 / 初読者基準 / 表記) から checklist を作る fresh review |
-| `--review` | findings 報告のみで修正しない (Flow 4-5 を skip)。「改善点を探して」「見直して」の発話はこの mode で受ける |
+| `--review` | findings 報告のみで修正しない (Flow 4-5 を skip)。「改善点を探して」「再確認して」の発話はこの mode で受ける |
 
 ## Flow
 

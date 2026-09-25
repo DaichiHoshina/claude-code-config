@@ -20,9 +20,9 @@
 | 機能の複数 PR 分割・release 順設計 | `pr-release-order.md` |
 | 大機能を「既存挙動を変えない PR」から積む chain 設計 (dead code first / 確認不要 / flag 有効化 1 行) | `dead-code-first-pr-chain.md` |
 | chain PR (base≠main) 操作 | `chain-pr-main-merge.md` |
-| `/spec-design` `/spec-plan` `/spec-dev` の規則を疑う・規則の出所を知りたい | `spec-flow-episodes.md` |
-| `/spec-plan` の PR 6 項目・行数見積・層切り例外・`--update` の細部が必要 | `spec-plan-phase-anatomy.md` |
-| `/spec-plan` Step 2 の scope 走査 (参照件数 / ORM 登録 / 画面 repo 特定 / DD と code の食い違い) の判定 | `spec-plan-scope-scan.md` |
+| `/sdd-design` `/sdd-plan` `/sdd-implement` の規則を疑う・規則の出所を知りたい | `spec-flow-episodes.md` |
+| `/sdd-plan` の PR 6 項目・行数見積・層切り例外・`--update` の細部が必要 | `sdd-plan-phase-anatomy.md` |
+| `/sdd-plan` Step 2 の scope 走査 (参照件数 / ORM 登録 / 画面 repo 特定 / DD と code の食い違い) の判定 | `sdd-plan-scope-scan.md` |
 | screenshot を外向き text に添付 | `screenshot-resize.md` |
 | feature flag・maintenance flag・config 切替 release | `feature-flag-deploy-order.md` |
 | commit・PR・issue・外向き post 起草時 | `ai-output.md` |
@@ -48,6 +48,7 @@
 | bats の test の作成・実行・fail の切り分け時 | `bats-pitfalls.md` |
 | セットアップ / 導入 / 再構築の手順を記載する時、既存環境への適用を案内する時 | `setup-guide-fresh-vs-running.md` |
 | 思考原則 (`rules/thinking-principles.md`) の妥当性を疑う時、同型の失敗を踏んだ時 | `thinking-principles-episodes.md` |
+| repo 固有 rule の置き場所を解決する時 (`/review --full` `/sdd-plan` `/sdd-implement`)、新しい repo の manifest を書く時 | `repo-rules-manifest.md` |
 
 ## 運用
 

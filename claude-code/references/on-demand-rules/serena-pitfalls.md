@@ -25,7 +25,7 @@ Go の例。`strPtr(s string) *string` を Go 1.26 `new(string(...))` に swap �
 **How to apply**:
 
 - **推奨: 定義を消してから call site 置換に入る**。定義行が保持されていなければ collision の余地は生まれない
-- **代替: negative look-behind で `func` を除外する**。`(?<!func\s)funcName\(([^)]+)\)` のようにする (Python re の DOTALL/MULTILINE 前提で動く)
+- **代替: negative look-behind で `func` を対象外にする**。`(?<!func\s)funcName\(([^)]+)\)` のようにする (Python re の DOTALL/MULTILINE 前提で動く)
 - **併用: 置換後に必ず build + tail -20 で file 末尾を目視する**。`go build ./...` は param list が構造的に正しければ成功してしまう
 - **cast 二重回避**: `intPtr(int(x))` → `new(int(x))` のように内側 cast を保つ場合、専用 regex `intPtr\(int\(([^)]+)\)\)` → `new(int($!1))` を先に実行してから `intPtr\(([^)]+)\)` → `new(int($!1))` の順で置換する。逆順だと `new(int(int(x)))` になる
 

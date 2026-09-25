@@ -75,6 +75,7 @@ cluster
 code
 column
 command
+commands
 comment
 commit
 common
@@ -128,6 +129,7 @@ docker
 docs
 document
 domain
+done
 download
 draft
 drop
@@ -301,6 +303,7 @@ monitor
 mount
 mouse
 move
+mutation
 name
 network
 new
@@ -343,9 +346,11 @@ phase
 pip
 pipeline
 plan
+plans
 plugin
 pnpm
 point
+pong
 port
 post
 prefix
@@ -358,6 +363,7 @@ product
 profile
 progress
 project
+promote
 prompt
 props
 protocol
@@ -441,6 +447,7 @@ setup
 share
 shell
 sidebar
+since
 site
 size
 sizes
@@ -515,6 +522,7 @@ top
 topic
 total
 track
+transaction
 tree
 true
 try

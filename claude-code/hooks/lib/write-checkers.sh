@@ -56,7 +56,7 @@ _check_live_doc_required() {
   # 空 content はスキップ
   [ -z "$content" ] && return 0
 
-  # 実装例を含む設定 file で誤爆するため、.sh / .bats / hook 自身 / tests/ は除外する
+  # 実装例を含む設定 file で誤爆するため、.sh / .bats / hook 自身 / tests/ は対象外にする
   case "$file_path" in
     *.sh|*.bats) return 0 ;;
     */tests/*|*/hooks/*) return 0 ;;
@@ -362,7 +362,7 @@ _check_edit_churn() {
     printf '[%s] %s | churn | %s | %d\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$_session" "$_path" "$_count" >> "$_log" 2>/dev/null || true
     local _bn
     _bn=$(basename "$_path")
-    local _warn="▲ churn warn: ${_bn} は本 session で ${_count} 回目の書き換え。差分の意図を確認し、無意味な rename / 有用 comment 削除がないか見直す (log: ~/.claude/logs/review-pattern-warn.log)"
+    local _warn="▲ churn warn: ${_bn} は本 session で ${_count} 回目の書き換え。差分の意図を確認し、無意味な rename / 有用 comment 削除がないか再確認する (log: ~/.claude/logs/review-pattern-warn.log)"
     if [ -n "$ADDITIONAL_CONTEXT" ]; then
       ADDITIONAL_CONTEXT="${ADDITIONAL_CONTEXT}"$'\n'"${_warn}"
     else
@@ -394,7 +394,7 @@ _check_ai_coined_terms() {
   local _bn
   _bn=$(basename "$_path")
   local _msg
-  _msg="◉ AI 造語 block (ファイル: ${_bn}): code review で「AI 生成の造語」と指摘された語を検出した。定義された用語で書き直すか、初出なら定義を添える。検出行:
+  _msg="◉ AI 造語 block (ファイル: ${_bn}): code review で「AI 生成の造語」と指摘された語を検出した。定義された用語で書き換えるか、初出なら定義を添える。検出行:
 ${_hits}"
   {
     printf '%s\n' "$_msg"
@@ -581,7 +581,7 @@ _handle_edit_write_tool() {
     _check_legacy_auto_memory_path "$_EDIT_FILE_PATH"
   fi
 
-  # AI定型語 block: code file も対象にする。ai-tools 配下等は NG 語 literal 保持のため除外する。
+  # AI定型語 block: code file も対象にする。ai-tools 配下等は NG 語 literal 保持のため対象外にする。
   # EDIT_CONTENT は jq -j の raw 出力で実改行のまま入るため、変換なしでそのまま渡す
   if [[ "$GUARD_CLASS" != "Forbidden" ]] && [ -n "$EDIT_CONTENT" ]; then
     _run_ai_jargon_check "$_EDIT_FILE_PATH" "$EDIT_CONTENT"

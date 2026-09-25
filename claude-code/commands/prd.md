@@ -8,7 +8,7 @@ argument-hint: "[topic]"
 
 Organize complex requirements and detect gaps from multiple expert perspectives.
 
-> Full flow (3 track): 小さい開発は `/prd` → `/plan` → `/dev` or `/flow`、大きい開発は `/prd` → `/spec-design` → `/spec-plan` → `/spec-detail` → `/spec-dev` → `/explain`。track の判定: `references/design-phase-flow.md`
+> Full flow (3 track): 小さい開発は `/prd` → `/plan` → `/dev` or `/flow`、大きい開発は `/prd` → `/sdd-design` → `/sdd-plan` → `/sdd-phase-design` → `/explain` → `/sdd-implement` → `/sdd-review` → `/explain`。track の判定: `references/design-phase-flow.md`
 
 ## Input Parsing (auto-branch from ARGUMENTS)
 
@@ -48,7 +48,7 @@ AskUserQuestion → if "yes": glossary, entities, state transition table (state�
 
 ### Phase 1.7: Decision Quality Check (required, no skip)
 
-Q1-Q5 詳細と complement rule は `references/decision-quality-checklist.md` を canonical として参照する。goal-means consistency を Phase 2 draft 前に確認する。各 Q の output は Phase 2 PRD の **1.5 節** (template 参照) に書き込む。NG pattern にあたる場合は Critical を上げ、再度問い直す。
+Q1-Q5 詳細と complement rule は `references/decision-quality-checklist.md` を canonical として参照する。goal-means consistency を Phase 2 draft 前に確認する。各 Q の output は Phase 2 PRD の **1.5 節** (template 参照) に書き込む。NG pattern にあたる場合は Critical を上げ、再度問い返す。
 
 ### Phase 1.9: Structure gate (draft 前・必須)
 
@@ -73,6 +73,9 @@ CUST = bridge between UX (usability) and BIZ (business ROI). "Will users really 
 
 Review technique: MECE, state completeness, branch coverage, contradiction detection, counter-questions.
 
+Record every ID's verdict as Clear / Partial / Missing, including the personas that produced no finding.
+Each `Missing` becomes a Phase 4 Issue List entry labeled 観点未適用, so a lens that was never applied stays visible instead of vanishing from the output.
+
 ### Phase 4: Issue List
 
 Critical (must fix) / Warning (recommended) / Info (consider)
@@ -87,7 +90,7 @@ AskUserQuestion 回答が "unclear"/"pending" → draft Open Questions へ移動
 
 ### Phase 5: Fix & Approve
 
-AskUserQuestion → fix or approve → `/spec-design` (team-shared design) or `/plan` or `/dev`
+AskUserQuestion → fix or approve → `/sdd-design` (team-shared design) or `/plan` or `/dev`
 
 ## Output Template
 
@@ -95,12 +98,13 @@ AskUserQuestion → fix or approve → `/spec-design` (team-shared design) or `/
 # PRD: [Feature]
 ## 1. Overview (purpose/background/scope)
 ## 1.5 Decision Rationale (Q1-Q5: true goal / don't-build comparison / 3 alternatives / 3 premortems / assumption break conditions)
+## 1.6 Non-Goals (今回作らないものを 1 行ずつ、理由を添えて列挙する。Q2 と 1. の scope で対象外にしたものをここに集約し、他の節では参照だけにする)
 ## 2. Users (target/stories/roles)
 ## 3. System (dependencies/data flow/external APIs)
 ## 4. Functional Req (state transitions/business rules)
 ## 4.5 Formalization (complex cases only)
 ## 5. Non-functional Req
-## 6. Acceptance Criteria  (**条件に `AC-1` のような ID を振らない**。「〜のとき、〜が〜になる」の判定できる文にし、後段からは条件の文を backtick で引用して指す)
+## 6. Acceptance Criteria  (**条件に `AC-1` のような ID を振らない**。「〜のとき、〜が〜になる」の判定できる文にし、後段からは条件の文を装飾せずに引用して指す)
 ## 7. Review Result
 ## 8. Next Steps
 ```
@@ -112,7 +116,7 @@ AskUserQuestion → fix or approve → `/spec-design` (team-shared design) or `/
 | 状態 | Next |
 |---|---|
 | 単一 service 内の機能追加 (小さい開発) | `/plan <task>` (PRD を入力にする) |
-| 複数 service / API ・ DB ・ 画面が変わる (大きい開発) | `/spec-design --prd <path>` (`--out` で PRD を md に保持してから渡す) |
+| 複数 service / API ・ DB ・ 画面が変わる (大きい開発) | `/sdd-design --prd <path>` (`--out` で PRD を md に保持してから渡す) |
 | 要求そのものが揃っていない | `/brainstorm` |
 
 **Read-only**: no implementation. Fetch external APIs. Repeatable.

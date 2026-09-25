@@ -29,7 +29,7 @@ Execute commit → push → PR/MR creation in single command.
 
 1. Check state (`git status --short` / `branch --show-current` / `diff --stat` / `log --oneline -5`)
 2. **Writing pre-check** (commit msg 生成前): `references/writing-check-protocol.md` 参照 (対象: commit message、`/git-push` / 直接 `git commit` 共通経路)。連続漢字 5 字以上の複合語は助詞挿入か訓読みで開く (structural warn 最多 pattern の先手 sweep)。Hook (`pre-tool-use.sh`) が `git commit` で block する前に解消する。
-   - **直近 block 語との照合**: 初稿を書いた後、`awk -F'|' '/block$/{print $3}' ~/.claude/logs/jp-quality-block.log | tail -n 100 | tr ',' '\n' | sort -u` で直近の block 語 list を取り、初稿に 1 件でも含まれていないか grep する。含まれていたら書き直してから commit する (自分で追加した NG 語を自分の commit で使う事故の再発防止。2026-09-18 実測: 1 session で 5+ 回発生)
+   - **直近 block 語との照合**: 初稿を書いた後、`awk -F'|' '/block$/{print $3}' ~/.claude/logs/jp-quality-block.log | tail -n 100 | tr ',' '\n' | sort -u` で直近の block 語 list を取り、初稿に 1 件でも含まれていないか grep する。含まれていたら書き換えてから commit する (自分で追加した NG 語を自分の commit で使う事故の再発防止。2026-09-18 実測: 1 session で 5+ 回発生)
 3. Uncommitted changes present → analyze diff → generate Conventional Commits msg → confirm w/ user → commit
 
 ### main mode
@@ -53,11 +53,11 @@ Execute commit → push → PR/MR creation in single command.
 - 対処側のラベルだけで目的が書かれていない句 (「〜として固定する」「〜局所で定義する」「〜対象」等)
 - 業務用語・設計用語 (没収 / grandfather / 最低サポート / 不整合 等) を初出で括弧説明なしに使った句
 
-3 型に当たったら書き直すか、その comment 自体を消す (guideline 「review」 で意味を問われた comment)。書き直しは skill の OK 判定を目安にせず、自分が「読み手は句の外から補わずに状況を復元できるか」を口に出して確かめる。skip する option は用意しない (skill 採点と reviewer の反応がズレる場合があると 2026-08-24 の PDCA で確定した。commit `de097eac` / `d6cd4382`)。
+3 型に当たったら書き換えるか、その comment 自体を消す (guideline 「review」 で意味を問われた comment)。書き換えは skill の OK 判定を目安にせず、自分が「読み手は句の外から補わずに状況を復元できるか」を口に出して確かめる。skip する option は用意しない (skill 採点と reviewer の反応がズレる場合があると 2026-08-24 の PDCA で確定した。commit `de097eac` / `d6cd4382`)。
 4.7. **未返信 review comment の件数表示** (branch に open PR が既にあるときのみ): `gh pr view --json number,reviews` で PR 番号を取り、`gh api repos/{owner}/{repo}/pulls/<n>/comments` の inline comment のうち自分の返信が付いていない thread 数を 1 行で表示する (「未返信の review comment が N 件あります。対応は `review-reply-draft` / `/self-review-fix`」)。block も自動返信もしない。4.5 (comment 削除検出) / 4.6 (comment 語彙) とは別軸で、追加 push の時点で未対応の指摘に気づく材料を出すのが目的。`gh` 不在や GitLab は skip。
 4.8. **節構成と title の印**:
    - **節構成**: repo に `.github/pull_request_template.md` があればその節をそのまま使って body draft を組み、無ければ `guidelines/writing/pr-description.md` 「テンプレ (repo template が無い場合)」の節を使う。確認してほしい点は `## レビュー観点` (節が無ければ `## 実装概要` の冒頭)、挙動の変化は `## 影響範囲` の 1 行目、連続する PR の何本目かは `## 背景` か `## 備考` へ記載する (「chain」は外向き text に書かない) (`guidelines/writing/pr-description.md` 「節への配置」)
-   - **「変わらない」の判定**: 下記いずれかに当たれば diff は「変わらない」。作業計画書 (SPEC) に「既存挙動:」の列があればそれを正とする
+   - **「変わらない」の判定**: 下記いずれかに当たれば diff は「変わらない」。作業計画書 (Implementation Plan) に「既存挙動:」の列があればそれを正とする
 
      | パターン | 確認方法 |
      |---|---|
@@ -69,7 +69,7 @@ Execute commit → push → PR/MR creation in single command.
 
    - **title の印**: 「変わらない」と判定したら title に repo の印 (`[確認不要]` 等。repo の直近 merged PR の title で慣習を 1 度確かめる) を付ける。判定に迷う diff は「変わる」と決めつけず、変わる箇所を 1 つ書いて user に見せる
 5. `gh pr create` / `glab mr create` (auto-detect remote)
-5.5. **writing check (PR body)**: `references/writing-check-protocol.md` 参照 (対象: PR body draft)。加えて次の 2 つを検査してから作成・編集する (`guidelines/writing/pr-description.md` §抽象度の線引き。`gh pr edit` での追記も同じ検査を通す)。(a) body draft の `## 実装概要` より前の範囲を `grep -cE 'ALGORITHM=|LOCK=|FOR UPDATE'` で数え、1 件でも hit したらその根拠を `## 実装概要` の下位の項目か `###` の見出しへ移す。(b) body draft 全体を `grep -nE 'Error [0-9]{3,5}|SQLSTATE|exit [0-9]{2,3}'` で探し、hit した行に日本語の説明が無ければ「何が起きるか」を日本語で書き、番号は括弧で添える形に直す。PR body の issue/PR URL は `gh issue view` / `gh pr view` で番号存在を事前検証する (`references/on-demand-rules/ai-output.md` `## URL / Issue & PR Number Validation`)。
+5.5. **writing check (PR body)**: `references/writing-check-protocol.md` 参照 (対象: PR body draft)。加えて次の 2 つを検査してから作成・編集する (`guidelines/writing/pr-description.md` §抽象度の線引き。`gh pr edit` での追記も同じ検査を通す)。(a) body draft の `## 実装概要` より前の範囲を `grep -cE 'ALGORITHM=|LOCK=|FOR UPDATE'` で数え、1 件でも hit したらその根拠を `## 実装概要` の下位の項目か `###` の見出しへ移す。(b) body draft 全体を `grep -nE 'Error [0-9]{3,5}|SQLSTATE|exit [0-9]{2,3}'` で探し、hit した行に日本語の説明が無ければ「何が起きるか」を日本語で書き、番号は括弧で添える形に書き換える。PR body の issue/PR URL は `gh issue view` / `gh pr view` で番号存在を事前検証する (`references/on-demand-rules/ai-output.md` `## URL / Issue & PR Number Validation`)。
 6. Display PR/MR URL
 7. **Auto-review** (`--auto-review` only, GitHub only, default OFF): `/code-review:code-review <PR#>` と `coderabbit:code-review` を `Bash run_in_background:true` で並列起動 → `BashOutput` で順次完了確認。成功は PR comment 投稿を user に表示、失敗は tool 名 / exit code / stderr tail 10 行を表示 (PR 作成自体は成功扱い)。GitLab/`glab` 環境は skip + warn 表示。
 
@@ -110,7 +110,7 @@ Auto-comment body は `references/on-demand-rules/ai-output.md` と `PRINCIPLES.
 
 ## Next
 
-PR URL の後に 1 行記載する。作業計画書の Phase を実装した PR なら `Next: /spec-dev <SPEC path> --phase <n+1>  (次 Phase へ)`、最終 Phase なら `Next: なし (全 Phase 完了)`。spec 文脈でなければ記載しない。
+PR URL の後に 1 行記載する。作業計画書の Phase を実装した PR なら `Next: /sdd-implement <作業計画書 path> --phase <n+1>  (次 Phase へ)`、最終 Phase なら `Next: なし (全 Phase 完了)`。spec 文脈でなければ記載しない。
 
 ## Error handling
 

@@ -159,7 +159,7 @@ fi
 
 **HTML mode**:
 
-- `<!-- updated: -->` を今日の日付に
+- `<!-- updated: -->` を今日の日付と現在時刻に (`date '+%F %H:%M'`。一覧は分単位で並べる)
 - `<!-- data-window: -->` の右辺を今日の日付に
 - リード文の「データ取得日は YYYY-MM-DD。」を今日の日付に
 - `<!-- since-cursor: -->` を今回の実行時刻 (`date -u +%Y-%m-%dT%H:%M:%SZ`) に更新する。既存 doc にタグが無ければ `<!-- updated: -->` の直後に新規挿入する
@@ -181,8 +181,9 @@ chat mode ではこの Step 全体を skip する。追記後、shared CSS/JS �
 chat mode ではこの Step 全体を skip する。
 
 ```bash
-cd "$(dirname "$DOC")/../.."
-/usr/bin/env -i HOME="$HOME" PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin" node _index/build.mjs
+# doc の深さは dir 構成で変わるため、doc からの相対でなく置き場の root へ移動する
+cd "${LOCAL_DOCS_ROOT:-$HOME/local-docs}"
+/usr/bin/env -i HOME="$HOME" PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin" node _index/build-index.mjs
 ```
 
 exit 0 で done。fail 時は Step 1 の snapshot から差し替えて調査する。

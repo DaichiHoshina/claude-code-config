@@ -7,7 +7,7 @@
 - `guidelines/writing/PRINCIPLES.md` — 規約 file 自体が JP、EN 化で規約と矛盾
 - `commands/jp-fix.md` — JP writing 例示が規範 (frontmatter は EN OK、body のみ保護)
 - `commands/post-comment.md` — 同上
-- `commands/spec-design.md` — 同上
+- `commands/sdd-design.md` — 同上
 - `commands/prd.md` — 同上
 - `guidelines/writing/*.md` (全 file、canonical: `ls guidelines/writing/*.md` で導出) — 執筆規約・NG 辞書・JP 文体規範
 - `rules/thinking-principles.md` — JP 文言が `tests/integration/thinking-principles-sync.bats` の anchor
@@ -27,7 +27,7 @@
 
 - 全 Go code block — technical idiom、コメントは JP のまま
 - bats test の expected output / fixture 内 JP literal — test assertion 破壊回避
-- `commands/dev.md` の `skip 4 conditions` — `tests/integration/parallel-consistency.bats` の anchor。EN の言い回しとしては `the four --auto skip conditions` の方が自然だが、言い換えると test が失敗する
+- `commands/dev.md` の `skip 4 conditions` / `worktree proposal` / `worktree creation` — `tests/integration/parallel-consistency.bats` の anchor。EN の言い回しとしては `the four --auto skip conditions` の方が自然だが、言い換えると test が失敗する。**JP 化でも同じく壊れる**。2026-09-21 に 9ca67f9d の重複整理で 3 語とも JP へ置き換わり、同 test が 2 件落ちた (1 語だけ保護 list に載せていたため、残り 2 語が素通りした)
 
 ## EN 化の着手前に必ず打つ確認
 
@@ -38,7 +38,7 @@ grep -rn "<その file の JP 見出し / 特徴的な JP 文>" tests/
 grep -rn "<見出しに含まれる英語 literal>" tests/
 ```
 
-JP 文言だけを見ても足りない。JP の地の文に埋め込まれた英語 literal が anchor になっている例があり、2026-08-29 に `commands/dev.md` の `skip 4 conditions` を EN 化のついでに言い換えて `tests/integration/parallel-consistency.bats` を削除した。hit した file は EN 化の対象から外すか、anchor になっている literal だけ元の綴りで保持する。
+JP 文言だけを見ても足りない。JP の地の文に埋め込まれた英語 literal が anchor になっている例があり、2026-08-29 に `commands/dev.md` の `skip 4 conditions` を EN 化のついでに言い換えて `tests/integration/parallel-consistency.bats` を削除した。hit した file は EN 化の対象外にするか、anchor になっている literal だけ元の綴りで保持する。
 
 ## 違反時の影響
 
@@ -50,7 +50,7 @@ JP 文言だけを見ても足りない。JP の地の文に埋め込まれた�
 | CLAUDE.md Natural Language Triggers | "pushして" 等の trigger 不一致で `/git-push --pr` 自動発火失敗 |
 | `PARALLEL-PATTERNS.md` forbidden_phrases | `tests/integration/parallel-consistency.bats` が exact-match 失敗 |
 | `developer-agent-delegation-prompt.md` Section 0 | `tests/integration/orchestrate-mode.bats` が checklist 4 件の grep -F で失敗 |
-| `commands/dev.md` の `skip 4 conditions` | `tests/integration/parallel-consistency.bats` が canonical 参照を見つけられず失敗 |
+| `commands/dev.md` の `skip 4 conditions` / `worktree proposal` / `worktree creation` | `tests/integration/parallel-consistency.bats` が canonical 参照と 3 軸記述を見つけられず失敗 |
 
 ## 参照元
 

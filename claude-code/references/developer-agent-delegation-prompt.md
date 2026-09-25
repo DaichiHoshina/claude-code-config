@@ -69,14 +69,14 @@ Subagent rule:
 - Read on `additional_files` is allowed; Edit / Write is forbidden
 - No "discovered another file that needs fixing" — record under `out_of_scope_observations[]` and stop
 
-### 設計 file が SoT のとき (詳細設計・作業計画書からの実装)
+### 設計 file が SoT のとき (Phase 詳細設計・作業計画書からの実装)
 
 `touchable_files` は file 単位の制限なので、許可された file の内側で設計に根拠の無い変更を加えるのは防げない。設計 file を SoT として実装を委譲するときは、prompt の制約に次の 2 行を加える。
 
 - 設計に記載が無い変更を追加しない (comment の書き換え / rename / 周辺の整理はすべて対象)
 - code comment は設計が明示した内容だけを追加する
 
-親は実装完了時に `git diff --stat <base>..HEAD` を取り、設計の「変更対象 file」節と件数・file 名を突き合わせてから完了と判断する。差分が多いときは、設計へ追記して根拠を作るか、その変更を取り消すかを user に確認する。
+親は実装完了時に `git diff --stat <base>..HEAD` を取り、設計の「変更対象 file」節と件数・file 名を突き合わせてから完了と判断する。差分が多いときは、設計へ追記して根拠を作るか、その変更を元に戻すかを user に確認する。
 
 環境への操作 (docker / container / network / 外部 service) も同じ理由で prompt に禁止と書く。書かないと subagent が作業の妨げを自力で解消しようとして独自判断で実行する (2026-09-18 実踏: `docker rm` と `docker network prune` が報告に含まれていた)。
 
@@ -117,7 +117,7 @@ Per-task pattern (only when agent-side verify is needed):
 Plain JP with complete sentences and explicit subjects. Preserve facts, tense, and stance instead of varying endings mechanically. PREP 3-point (conclusion/reason/next), HEREDOC pass.
 No: `Co-Authored-By: Claude`, `Generated with`, AI markers.
 
-NG word self-check (pre-write): canonical `~/.claude/guidelines/writing/PRINCIPLES.md` の AI 定型語 list で generate 後に grep し、hit したら書き直す。Hook (`pre-tool-use.sh:_check_jp_quality`) が post-generation で block するが、生成時に捕捉する方が retry 損失が小さい。
+NG word self-check (pre-write): canonical `~/.claude/guidelines/writing/PRINCIPLES.md` の AI 定型語 list で generate 後に grep し、hit したら書き換える。Hook (`pre-tool-use.sh:_check_jp_quality`) が post-generation で block するが、生成時に捕捉する方が retry 損失が小さい。
 
 Example:
 ```

@@ -156,7 +156,7 @@ _warn_private_terms_in_staged_diff() {
   done < <(_load_private_name_terms)
   [[ ${#terms[@]} -eq 0 ]] && return 0
 
-  # 追加行のみ抽出。rule 説明文として term を保持する file は下記 pathspec で除外する。
+  # 追加行のみ抽出。rule 説明文として term を保持する file は下記 pathspec で対象外にする。
   # 128KB 上限で巨大 diff の性能を担保
   local added
   added=$(git -C "$cwd" diff --cached --unified=0 --no-color -- \

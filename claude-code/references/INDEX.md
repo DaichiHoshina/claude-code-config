@@ -40,8 +40,9 @@ On-demand index from CLAUDE.md.
 | Topic | File |
 |-------|------|
 | Design phase transitions / 規模で分かれる 3 track (極小 / 小さい開発 / 大きい開発) の選択 | `design-phase-flow.md` |
-| `/spec-plan` の目的と実装の対応 (表だけで記載する理由と書き方) | `purpose-traceability.md` |
-| 設計駆動フローの Why (大きい開発の spec 系 4 本で、段階の境界がそこにある理由) | `ai-design-driven-flow.md` |
+| `/sdd-plan` の目的と実装の対応 (表だけで記載する理由と書き方) | `purpose-traceability.md` |
+| repo に作業計画書の template が無いときの節構成 | `sdd-plan-skeleton.md` |
+| 設計駆動フローの Why (大きい開発の spec 系 6 本で、段階の境界がそこにある理由) | `ai-design-driven-flow.md` |
 | Compounding Engineering | `compounding-engineering-cycle.md` |
 | Parallel execution patterns (worktree decisions) | `PARALLEL-PATTERNS.md` |
 | /flow 詳細 orchestration 仕様 (pre-delegation / 3 Gate 詳細) | `flow-orchestration.md` |
@@ -77,7 +78,7 @@ On-demand index from CLAUDE.md.
 | Topic | File |
 |-------|------|
 | DesignDoc writing and granularity | `../guidelines/writing/design-doc-protocol.md` |
-| DesignDoc spec 型 template (`/spec-design` 既定) | `design-doc-spec-template.md` |
+| DesignDoc spec 型 template (`/sdd-design` 既定) | `design-doc-spec-template.md` |
 | Writing self-check protocol (閾値 / loop 上限 canonical) | `writing-check-protocol.md` |
 | Performance improvement issues | `performance-issue-template.md` |
 | Universal review patterns | `review-patterns-universal.md` |

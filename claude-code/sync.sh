@@ -202,7 +202,7 @@ has_gh_skill_metadata() {
     grep -qE "^[[:space:]]+github-repo:[[:space:]]+https://github\.com/" "$skill_file" 2>/dev/null
 }
 
-# skills の diff 行から外部管理 skill (symlink / gh skill metadata 付き) を除外する
+# skills の diff 行から外部管理 skill (symlink / gh skill metadata 付き) を対象外にする
 filter_managed_skill_diff() {
     local line name
     while IFS= read -r line; do
@@ -965,7 +965,7 @@ show_diff() {
                 local diff_output
                 # .private-*/.local-* は sync 保護対象 (local 専用) のため差分扱いしない
                 diff_output=$(diff -rq "$src" "$dst" 2>/dev/null | grep -v -E '(/|: )(\.private-|\.local-)' || true)
-                # skills/.system/ と外部管理 skill は to-local で除外するため差分扱いしない
+                # skills/.system/ と外部管理 skill は to-local で対象外にするため差分扱いしない
                 if [ "$item" = "skills" ] && [ -n "$diff_output" ]; then
                     diff_output=$(echo "$diff_output" | { grep -v -E '/skills/\.system(/|$)|skills: \.system$' || true; } | filter_managed_skill_diff)
                 fi

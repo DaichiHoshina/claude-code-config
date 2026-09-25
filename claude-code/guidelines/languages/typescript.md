@@ -41,6 +41,17 @@ Prohibitions (no `any` / no `as` / no `!`): see `~/.claude/guidelines/common/typ
 - Type/Class: PascalCase
 - Constant: UPPER_SNAKE_CASE
 - Private: # prefix
+- Types: name what the value is (`Order`), not `OrderData` / `UserInfo`. No `I` / `T` prefix (`User`, not `IUser`). Add a suffix only for a role: `CreateOrderInput` / `OrderResponse` / `OrderCardProps`
+- Maps / records: `xxxByKey` (`productsById: Record<string, Product>`)
+- Status: a union type (`'pending' | 'paid'`), not `string`. Use a discriminated union when each status carries different fields
+- Class getters: no `get` in the name (`get name()`, not `getName()`)
+- Module names are not part of the call site (`import { formatQuality } from './quality'`), so keep the concept word in the function name
+
+### React
+
+- Props callback: `onXxx`. The handler inside the component: `handleXxx` (`onClick={handleSubmit}` calls `onSubmit`)
+- Components: name the role, not the look (`SubmitButton` / `OrderSummary`, not `BlueButton` / `LeftArea`). Generic names are fine for design-system primitives (`Button` / `Dialog`)
+- Hooks: `useXxx` naming the concept the hook provides (`useOrder(orderId)` / `useShippingForm()`). Avoid `useHelpers` / `useCommon`
 
 ---
 
