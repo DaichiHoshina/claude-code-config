@@ -35,7 +35,7 @@ Claude Code を毎日の開発で使うための設定一式。計画から実�
 ### 編集と安全
 
 - **Serena MCP を前提にした編集規約**
-  - code を symbol 単位で扱う MCP server が編集と参照追跡を担い、built-in の Read / Edit は未接続時だけ使う
+  - code を symbol 単位で扱う MCP server が編集と参照追跡を担い、built-in の Read / Edit は Serena に接続していないときだけ使う
 - **秘匿情報を repo に書けない仕組み**
   - 社内の固有名や個人名の一覧を repo の外 (`~/.claude/references-private/`) に置き、hook が書き込みと commit 文面を検査する
 - **設定の正本と `~/.claude/` を script で同期する**
